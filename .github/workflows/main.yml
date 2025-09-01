@@ -34,7 +34,7 @@ jobs:
       - name: tune linux network
         run: sudo ethtool -K eth0 tx off rx off
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -63,7 +63,7 @@ jobs:
   lint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Node setup
         uses: ./.github/actions/setup
@@ -99,7 +99,7 @@ jobs:
     needs: [changes, build]
     if: ${{ needs.changes.outputs.needs_tests == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Node setup
         uses: ./.github/actions/setup
@@ -123,7 +123,7 @@ jobs:
     needs: [changes, build]
     if: ${{ needs.changes.outputs.needs_tests == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Node setup
         uses: ./.github/actions/setup
@@ -185,7 +185,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Node setup
         uses: ./.github/actions/setup
@@ -310,7 +310,7 @@ jobs:
     env:
       SUITE_NAME: ${{ matrix.suite }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Node setup
         uses: ./.github/actions/setup
@@ -447,7 +447,7 @@ jobs:
     env:
       SUITE_NAME: ${{ matrix.suite }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Node setup
         uses: ./.github/actions/setup
@@ -550,7 +550,7 @@ jobs:
       MONGODB_VERSION: 6.0
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Node setup
         uses: ./.github/actions/setup
@@ -647,7 +647,7 @@ jobs:
     needs: [changes, build]
     if: ${{ needs.changes.outputs.needs_tests == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Node setup
         uses: ./.github/actions/setup
@@ -706,7 +706,7 @@ jobs:
       actions: read # for fetching base branch bundle stats
       pull-requests: write # for comments
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Node setup
         uses: ./.github/actions/setup
