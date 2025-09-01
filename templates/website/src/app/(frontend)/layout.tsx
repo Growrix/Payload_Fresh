@@ -6,13 +6,9 @@ import { GeistSans } from 'geist/font/sans'
 import { Space_Grotesk, Inter } from 'next/font/google'
 import React from 'react'
 
-import { AdminBar } from '@/components/AdminBar'
-import { Footer } from '@/Footer/Component'
-import { Header } from '@/Header/Component'
 import { Providers } from '@/providers'
 import { InitTheme } from '@/providers/Theme/InitTheme'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
-import { draftMode } from 'next/headers'
 
 import './globals.css'
 import './growrix-theme.css'
@@ -29,8 +25,6 @@ const inter = Inter({
 })
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { isEnabled } = await draftMode()
-
   return (
     <html
       className={cn(GeistSans.variable, GeistMono.variable, spaceGrotesk.variable, inter.variable)}
@@ -43,15 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
       </head>
       <body className="min-h-screen bg-[#0B0B0B] text-white antialiased">
-        <Providers>
-          <AdminBar
-            adminBarProps={{
-              preview: isEnabled,
-            }}
-          />
-
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

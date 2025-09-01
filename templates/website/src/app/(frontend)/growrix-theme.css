@@ -9,9 +9,11 @@
 
 /* Dark theme background override */
 body {
-  font-feature-settings: "rlig" 1, "calt" 1;
-  background: #0B0B0B;
-  color: #FFFFFF;
+  font-feature-settings:
+    'rlig' 1,
+    'calt' 1;
+  background: #0b0b0b;
+  color: #ffffff;
 }
 
 html {

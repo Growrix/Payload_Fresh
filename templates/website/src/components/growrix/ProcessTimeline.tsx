@@ -1,41 +1,40 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
-import { 
-  Search, 
-  Palette, 
-  Code, 
-  Rocket 
-} from "lucide-react";
+import { motion } from 'framer-motion'
+import { useInView } from 'framer-motion'
+import { useRef } from 'react'
+import { Search, Palette, Code, Rocket } from 'lucide-react'
 
 const steps = [
   {
     icon: Search,
-    title: "Discovery",
-    description: "We dive deep into your business goals, target audience, and technical requirements to create a solid foundation."
+    title: 'Discovery',
+    description:
+      'We dive deep into your business goals, target audience, and technical requirements to create a solid foundation.',
   },
   {
     icon: Palette,
-    title: "Design",
-    description: "Our designers craft beautiful, user-centered interfaces that align with your brand and drive engagement."
+    title: 'Design',
+    description:
+      'Our designers craft beautiful, user-centered interfaces that align with your brand and drive engagement.',
   },
   {
     icon: Code,
-    title: "Build",
-    description: "Our developers bring designs to life with clean, scalable code and cutting-edge technologies."
+    title: 'Build',
+    description:
+      'Our developers bring designs to life with clean, scalable code and cutting-edge technologies.',
   },
   {
     icon: Rocket,
-    title: "Launch",
-    description: "We deploy your project with thorough testing, optimization, and ongoing support for continued success."
-  }
-];
+    title: 'Launch',
+    description:
+      'We deploy your project with thorough testing, optimization, and ongoing support for continued success.',
+  },
+]
 
 export default function ProcessTimeline() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
     <section ref={ref} className="py-24 px-6 bg-[#0B0B0B]">
@@ -58,12 +57,12 @@ export default function ProcessTimeline() {
           {/* Glowing timeline line */}
           <motion.div
             initial={{ height: 0 }}
-            animate={isInView ? { height: "100%" } : { height: 0 }}
+            animate={isInView ? { height: '100%' } : { height: 0 }}
             transition={{ duration: 2, delay: 0.5 }}
             className="absolute left-8 top-0 w-1 bg-gradient-to-b from-[#9C6BFF] to-[#FF6B9D] rounded-full"
-            style={{ 
-              boxShadow: "0 0 20px #9C6BFF",
-              filter: "blur(0.5px)"
+            style={{
+              boxShadow: '0 0 20px #9C6BFF',
+              filter: 'blur(0.5px)',
             }}
           />
 
@@ -82,8 +81,8 @@ export default function ProcessTimeline() {
                   animate={isInView ? { scale: 1 } : { scale: 0 }}
                   transition={{ duration: 0.5, delay: 1 + index * 0.2 }}
                   className="relative z-10 flex items-center justify-center w-16 h-16 bg-[#9C6BFF] rounded-full mr-8"
-                  style={{ 
-                    boxShadow: "0 0 30px #9C6BFF60"
+                  style={{
+                    boxShadow: '0 0 30px #9C6BFF60',
                   }}
                 >
                   <step.icon className="w-8 h-8 text-white" />
@@ -99,7 +98,7 @@ export default function ProcessTimeline() {
                   >
                     {step.title}
                   </motion.h3>
-                  
+
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={isInView ? { opacity: 1 } : { opacity: 0 }}
@@ -121,9 +120,9 @@ export default function ProcessTimeline() {
           className="text-center mt-20"
         >
           <motion.button
-            whileHover={{ 
+            whileHover={{
               scale: 1.05,
-              boxShadow: "0 0 30px #9C6BFF60"
+              boxShadow: '0 0 30px #9C6BFF60',
             }}
             whileTap={{ scale: 0.95 }}
             className="bg-[#9C6BFF] text-white px-8 py-4 rounded-lg font-['Inter'] font-semibold text-lg"
@@ -133,5 +132,5 @@ export default function ProcessTimeline() {
         </motion.div>
       </div>
     </section>
-  );
+  )
 }

@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion'
 
 export default function DemoCTA() {
   return (
@@ -24,5 +24,5 @@ export default function DemoCTA() {
         </motion.button>
       </div>
     </motion.section>
-  );
+  )
 }

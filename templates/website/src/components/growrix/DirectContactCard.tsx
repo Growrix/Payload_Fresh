@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion'
 
 export default function DirectContactCard() {
   return (
@@ -15,7 +15,9 @@ export default function DirectContactCard() {
       <div className="space-y-4">
         <div>
           <div className="text-sm text-[#B0B0B0]">Email</div>
-          <a href="mailto:hello@growrix.com" className="text-[#9C6BFF]">hello@growrix.com</a>
+          <a href="mailto:hello@growrix.com" className="text-[#9C6BFF]">
+            hello@growrix.com
+          </a>
         </div>
 
         <div>
@@ -32,9 +34,14 @@ export default function DirectContactCard() {
         </div>
 
         <div className="mt-4">
-          <a href="#" className="inline-flex items-center px-4 py-2 bg-[#9C6BFF] text-white rounded-lg">Book Call</a>
+          <a
+            href="#"
+            className="inline-flex items-center px-4 py-2 bg-[#9C6BFF] text-white rounded-lg"
+          >
+            Book Call
+          </a>
         </div>
       </div>
     </motion.aside>
-  );
+  )
 }

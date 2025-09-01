@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
 export default function DemoFilters() {
-  const filters = ["All", "SaaS", "Landing", "E‑commerce", "AI"];
+  const filters = ['All', 'SaaS', 'Landing', 'E‑commerce', 'AI']
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
       <div className="flex gap-3 flex-wrap">
@@ -15,5 +15,5 @@ export default function DemoFilters() {
         ))}
       </div>
     </div>
-  );
+  )
 }

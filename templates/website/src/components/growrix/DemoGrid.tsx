@@ -1,32 +1,32 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion'
 
 const mockDemos = Array.from({ length: 8 }).map((_, i) => ({
   id: i + 1,
   title: [
-    "SaaS Dashboard UI",
-    "E‑commerce Storefront",
-    "Marketing Landing",
-    "Analytics Suite",
-    "Booking Flow",
-    "Portfolio Showcase",
-    "AI Demo Console",
-    "Fintech Dashboard",
+    'SaaS Dashboard UI',
+    'E‑commerce Storefront',
+    'Marketing Landing',
+    'Analytics Suite',
+    'Booking Flow',
+    'Portfolio Showcase',
+    'AI Demo Console',
+    'Fintech Dashboard',
   ][i % 8],
   image: `https://source.unsplash.com/collection/190727/800x600?sig=${i}`,
-  tags: ["React", "Tailwind", i % 2 === 0 ? "SaaS" : "UI"],
-}));
+  tags: ['React', 'Tailwind', i % 2 === 0 ? 'SaaS' : 'UI'],
+}))
 
 const container = {
   hidden: {},
   show: { transition: { staggerChildren: 0.08 } },
-};
+}
 
 const card = {
   hidden: { opacity: 0, y: 12 },
   show: { opacity: 1, y: 0 },
-};
+}
 
 export default function DemoGrid() {
   return (
@@ -45,11 +45,7 @@ export default function DemoGrid() {
             className="relative bg-[#0F0F10] rounded-xl overflow-hidden shadow-lg transform transition-transform hover:-translate-y-1 hover:scale-[1.02]"
           >
             <div className="aspect-[4/3] bg-gray-800">
-              <img
-                src={d.image}
-                alt={d.title}
-                className="w-full h-full object-cover"
-              />
+              <img src={d.image} alt={d.title} className="w-full h-full object-cover" />
             </div>
 
             <div className="p-4">
@@ -78,5 +74,5 @@ export default function DemoGrid() {
         ))}
       </div>
     </motion.section>
-  );
+  )
 }

@@ -1,12 +1,12 @@
-"use client";
+'use client'
 
-import ContactHero from "@/components/growrix/ContactHero";
-import ContactForm from "@/components/growrix/ContactForm";
-import DirectContactCard from "@/components/growrix/DirectContactCard";
-import FinalCTA from "@/components/growrix/FinalCTA";
-import Navbar from "@/components/growrix/Navbar";
-import Footer from "@/components/growrix/Footer";
-import { motion } from "framer-motion";
+import ContactHero from '@/components/growrix/ContactHero'
+import ContactForm from '@/components/growrix/ContactForm'
+import DirectContactCard from '@/components/growrix/DirectContactCard'
+import FinalCTA from '@/components/growrix/FinalCTA'
+import Navbar from '@/components/growrix/Navbar'
+import Footer from '@/components/growrix/Footer'
+import { motion } from 'framer-motion'
 
 export default function ContactPage() {
   const container = {
@@ -16,10 +16,10 @@ export default function ContactPage() {
       y: 0,
       transition: {
         staggerChildren: 0.12,
-        when: "beforeChildren",
+        when: 'beforeChildren',
       },
     },
-  };
+  }
 
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-white">
@@ -51,5 +51,5 @@ export default function ContactPage() {
 
       <Footer />
     </main>
-  );
+  )
 }

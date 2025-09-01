@@ -1,11 +1,11 @@
-"use client";
+'use client'
 
-import Navbar from "@/components/growrix/Navbar";
-import Footer from "@/components/growrix/Footer";
-import DemoWallHeader from "@/components/growrix/DemoWallHeader";
-import DemoGrid from "@/components/growrix/DemoGrid";
-import DemoFilters from "@/components/growrix/DemoFilters";
-import DemoCTA from "@/components/growrix/DemoCTA";
+import Navbar from '@/components/growrix/Navbar'
+import Footer from '@/components/growrix/Footer'
+import DemoWallHeader from '@/components/growrix/DemoWallHeader'
+import DemoGrid from '@/components/growrix/DemoGrid'
+import DemoFilters from '@/components/growrix/DemoFilters'
+import DemoCTA from '@/components/growrix/DemoCTA'
 
 export default function DemoWallPage() {
   return (
@@ -22,5 +22,5 @@ export default function DemoWallPage() {
 
       <Footer />
     </main>
-  );
+  )
 }

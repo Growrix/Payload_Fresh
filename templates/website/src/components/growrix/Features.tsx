@@ -1,53 +1,46 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
-import { 
-  Code2, 
-  Palette, 
-  Brain, 
-  Smartphone, 
-  Database, 
-  Zap 
-} from "lucide-react";
+import { motion } from 'framer-motion'
+import { useInView } from 'framer-motion'
+import { useRef } from 'react'
+import { Code2, Palette, Brain, Smartphone, Database, Zap } from 'lucide-react'
 
 const features = [
   {
     icon: Code2,
-    title: "Custom Development",
-    description: "Tailored solutions built with cutting-edge technologies"
+    title: 'Custom Development',
+    description: 'Tailored solutions built with cutting-edge technologies',
   },
   {
     icon: Palette,
-    title: "UI/UX Design",
-    description: "Beautiful interfaces that users love to interact with"
+    title: 'UI/UX Design',
+    description: 'Beautiful interfaces that users love to interact with',
   },
   {
     icon: Brain,
-    title: "AI Integration",
-    description: "Smart applications powered by artificial intelligence"
+    title: 'AI Integration',
+    description: 'Smart applications powered by artificial intelligence',
   },
   {
     icon: Smartphone,
-    title: "Mobile Apps",
-    description: "Native and cross-platform mobile solutions"
+    title: 'Mobile Apps',
+    description: 'Native and cross-platform mobile solutions',
   },
   {
     icon: Database,
-    title: "Backend Systems",
-    description: "Scalable infrastructure and API development"
+    title: 'Backend Systems',
+    description: 'Scalable infrastructure and API development',
   },
   {
     icon: Zap,
-    title: "Performance",
-    description: "Lightning-fast applications optimized for speed"
-  }
-];
+    title: 'Performance',
+    description: 'Lightning-fast applications optimized for speed',
+  },
+]
 
 export default function Features() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
     <section ref={ref} className="py-24 px-6 bg-[#0B0B0B]">
@@ -74,9 +67,9 @@ export default function Features() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ duration: 0.6, delay: index * 0.06 }}
-                whileHover={{ 
+                whileHover={{
                   y: -8,
-                  boxShadow: "0 20px 40px rgba(156, 107, 255, 0.12)"
+                  boxShadow: '0 20px 40px rgba(156, 107, 255, 0.12)',
                 }}
                 className="bg-[#181818] p-8 rounded-2xl border border-[#9C6BFF]/20 hover:border-[#9C6BFF]/40 transition-all duration-300 w-full group cursor-pointer"
               >
@@ -97,5 +90,5 @@ export default function Features() {
         </div>
       </div>
     </section>
-  );
+  )
 }

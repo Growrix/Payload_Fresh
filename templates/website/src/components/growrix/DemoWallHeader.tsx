@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion'
 
 export default function DemoWallHeader() {
   return (
@@ -21,5 +21,5 @@ export default function DemoWallHeader() {
         </p>
       </div>
     </motion.header>
-  );
+  )
 }

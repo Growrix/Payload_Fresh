@@ -1,40 +1,40 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
-import { ArrowRight, Download, Globe, Smartphone } from "lucide-react";
+import { motion } from 'framer-motion'
+import { useInView } from 'framer-motion'
+import { useRef } from 'react'
+import { ArrowRight, Download, Globe, Smartphone } from 'lucide-react'
 
 const products = [
   {
     id: 1,
-    title: "UI Kit Pro",
-    description: "Complete design system with 200+ components",
-    priceRange: "$99 - $299",
+    title: 'UI Kit Pro',
+    description: 'Complete design system with 200+ components',
+    priceRange: '$99 - $299',
     icon: Globe,
-    tags: ["Design System", "Figma", "React"]
+    tags: ['Design System', 'Figma', 'React'],
   },
   {
     id: 2,
-    title: "Mobile App Templates",
-    description: "Ready-to-use React Native app templates",
-    priceRange: "$149 - $499",
+    title: 'Mobile App Templates',
+    description: 'Ready-to-use React Native app templates',
+    priceRange: '$149 - $499',
     icon: Smartphone,
-    tags: ["React Native", "Templates", "iOS/Android"]
+    tags: ['React Native', 'Templates', 'iOS/Android'],
   },
   {
     id: 3,
-    title: "Code Generators",
-    description: "AI-powered tools for rapid development",
-    priceRange: "$199 - $599",
+    title: 'Code Generators',
+    description: 'AI-powered tools for rapid development',
+    priceRange: '$199 - $599',
     icon: Download,
-    tags: ["AI Tools", "Automation", "Development"]
-  }
-];
+    tags: ['AI Tools', 'Automation', 'Development'],
+  },
+]
 
 export default function ShopPreview() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
     <section ref={ref} className="py-24 px-6 bg-[#0B0B0B]">
@@ -60,16 +60,14 @@ export default function ShopPreview() {
               initial={{ opacity: 0, y: 50 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
-              whileHover={{ 
+              whileHover={{
                 y: -10,
-                boxShadow: "0 25px 50px rgba(156, 107, 255, 0.2)"
+                boxShadow: '0 25px 50px rgba(156, 107, 255, 0.2)',
               }}
               className="bg-[#181818] rounded-2xl p-8 border border-[#9C6BFF]/20 hover:border-[#9C6BFF]/40 transition-all duration-300 group cursor-pointer relative overflow-hidden"
             >
               {/* Background glow effect */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-[#9C6BFF]/5 to-[#FF6B9D]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              />
+              <motion.div className="absolute inset-0 bg-gradient-to-br from-[#9C6BFF]/5 to-[#FF6B9D]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
               <div className="relative z-10">
                 <div className="flex items-center justify-center w-16 h-16 bg-[#9C6BFF]/10 rounded-2xl mb-6 group-hover:bg-[#9C6BFF]/20 transition-colors duration-300">
@@ -99,7 +97,7 @@ export default function ShopPreview() {
                   <span className="text-xl font-bold text-[#9C6BFF] font-['Space_Grotesk']">
                     {product.priceRange}
                   </span>
-                  
+
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -121,9 +119,9 @@ export default function ShopPreview() {
           className="text-center"
         >
           <motion.button
-            whileHover={{ 
+            whileHover={{
               scale: 1.05,
-              boxShadow: "0 0 30px #9C6BFF60"
+              boxShadow: '0 0 30px #9C6BFF60',
             }}
             whileTap={{ scale: 0.95 }}
             className="inline-flex items-center space-x-3 bg-[#9C6BFF] text-white px-8 py-4 rounded-lg font-['Inter'] font-semibold text-lg transition-all duration-300"
@@ -145,5 +143,5 @@ export default function ShopPreview() {
         </motion.div>
       </div>
     </section>
-  );
+  )
 }

@@ -1,54 +1,55 @@
-"use client";
+'use client'
 
-import { motion, useSpring, useTransform } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef, useEffect, useState, useMemo } from "react";
+import { motion, useSpring, useTransform } from 'framer-motion'
+import { useInView } from 'framer-motion'
+import { useRef, useEffect, useState, useMemo } from 'react'
 
 const stats = [
   {
     number: 150,
-    suffix: "+",
-    label: "Projects Delivered",
-    description: "Successfully launched digital products"
+    suffix: '+',
+    label: 'Projects Delivered',
+    description: 'Successfully launched digital products',
   },
   {
     number: 50,
-    suffix: "+",
-    label: "Active Clients",
-    description: "Trusted partnerships worldwide"
+    suffix: '+',
+    label: 'Active Clients',
+    description: 'Trusted partnerships worldwide',
   },
   {
     number: 98,
-    suffix: "%",
-    label: "Retention Rate",
-    description: "Clients who come back for more"
-  }
-];
+    suffix: '%',
+    label: 'Retention Rate',
+    description: 'Clients who come back for more',
+  },
+]
 
 function Counter({ target, suffix, isInView }) {
-  const count = useSpring(0, { stiffness: 100, damping: 20 });
-  const [value, setValue] = useState(0);
+  const count = useSpring(0, { stiffness: 100, damping: 20 })
+  const [value, setValue] = useState(0)
 
   useEffect(() => {
     const unsubscribe = count.onChange((v) => {
-      setValue(Math.round(v));
-    });
+      setValue(Math.round(v))
+    })
 
-    if (isInView) count.set(target);
+    if (isInView) count.set(target)
 
-    return () => unsubscribe();
-  }, [isInView, count, target]);
+    return () => unsubscribe()
+  }, [isInView, count, target])
 
   return (
-  <span className="text-5xl md:text-6xl font-bold font-['Space_Grotesk'] text-transparent bg-clip-text bg-gradient-to-r from-[#9C6BFF] to-[#FF6B9D]">
-      {value}{suffix}
+    <span className="text-5xl md:text-6xl font-bold font-['Space_Grotesk'] text-transparent bg-clip-text bg-gradient-to-r from-[#9C6BFF] to-[#FF6B9D]">
+      {value}
+      {suffix}
     </span>
-  );
+  )
 }
 
 export default function StatsSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
     <section ref={ref} className="py-24 px-6 bg-[#181818]">
@@ -73,12 +74,12 @@ export default function StatsSection() {
           transition={{ duration: 0.8, delay: 0.3 }}
           className="bg-[#0B0B0B] rounded-3xl p-12 border border-[#9C6BFF]/20 relative overflow-hidden"
           style={{
-            boxShadow: "0 0 60px rgba(156, 107, 255, 0.1)"
+            boxShadow: '0 0 60px rgba(156, 107, 255, 0.1)',
           }}
         >
           {/* Background glow effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#9C6BFF]/5 to-[#FF6B9D]/5" />
-          
+
           {/* Floating particles */}
           <div className="absolute inset-0 overflow-hidden">
             {useMemo(() => {
@@ -87,7 +88,7 @@ export default function StatsSection() {
                 top: Math.random() * 100,
                 duration: 3 + Math.random() * 2,
                 delay: Math.random() * 2,
-              }));
+              }))
               return particles.map((p, i) => (
                 <motion.div
                   key={i}
@@ -106,7 +107,7 @@ export default function StatsSection() {
                     delay: p.delay,
                   }}
                 />
-              ));
+              ))
             }, [])}
           </div>
 
@@ -119,24 +120,15 @@ export default function StatsSection() {
                 transition={{ duration: 0.6, delay: 0.5 + index * 0.2 }}
                 className="text-center group"
               >
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="mb-4"
-                >
-                  <Counter 
-                    target={stat.number} 
-                    suffix={stat.suffix}
-                    isInView={isInView}
-                  />
+                <motion.div whileHover={{ scale: 1.05 }} className="mb-4">
+                  <Counter target={stat.number} suffix={stat.suffix} isInView={isInView} />
                 </motion.div>
-                
+
                 <h3 className="text-2xl font-bold mb-3 font-['Space_Grotesk'] text-white group-hover:text-[#9C6BFF] transition-colors duration-300">
                   {stat.label}
                 </h3>
-                
-                <p className="text-[#B0B0B0] font-['Inter'] leading-relaxed">
-                  {stat.description}
-                </p>
+
+                <p className="text-[#B0B0B0] font-['Inter'] leading-relaxed">{stat.description}</p>
               </motion.div>
             ))}
           </div>
@@ -149,10 +141,11 @@ export default function StatsSection() {
           className="text-center mt-12"
         >
           <p className="text-[#B0B0B0] font-['Inter'] text-lg">
-            Join the growing list of satisfied clients who trust us with their digital transformation
+            Join the growing list of satisfied clients who trust us with their digital
+            transformation
           </p>
         </motion.div>
       </div>
     </section>
-  );
+  )
 }
