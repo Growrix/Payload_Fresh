@@ -1,0 +1,175 @@
+🟡 Prompt 6 — Add a Dedicated Mock Adapter Layer (single source of truth)
+You are my code generator. Create a mock data adapter for blog UX.
+
+1) Create file: lib/mocks/blogAdapter.ts
+   Export functions returning Promises with small timeouts:
+   - listPosts()
+   - getPost(id | 'new')
+   - saveDraft(partialPost)
+   - publishNow(id)
+   - unpublish(id)
+   - archive(id)
+   - listRevisions(postId)
+   - restoreRevision(postId, revisionId)
+   - checkSlugUnique(slug)
+   - listCategories()
+   - listTags()
+   - pickFeaturedImage()  // returns a mock asset
+   Use in-memory arrays (module-scoped) and Date.now() ids; simulate latency with setTimeout.
+
+2) Create types: types/blog-mocks.d.ts
+   - Minimal interfaces for Post, Revision, Category, Tag, Asset.
+
+3) Update tsconfig paths if needed so imports resolve via '@/lib/mocks/blogAdapter'.
+
+⚠️ DO NOT:
+- Do NOT import Supabase or call any API.
+- Do NOT export default; export named functions to discourage overreach.
+- Do NOT mutate external state; keep everything inside the module.
+
+✅ Acceptance:
+- File compiles, functions exist and return Promises.
+- No references to network or database.
+
+
+Teaching (brief):
+Effect: One controlled mock layer for all UX.
+What you’ll see: lib/mocks/blogAdapter.ts with Promise‑based helpers.
+Why it matters: Enables UX work (autosave, revisions, lifecycle) without DB; mirrors future API surface.
+
+DONE
+
+🟡 Prompt 7 — Debounced Autosave + Dirty State (Editor)
+Open: hooks/useAutoSave.ts
+
+1) Implement a debounced autosave hook:
+   - API: useAutoSave({data, onSave, delay=1000})
+   - Tracks dirty state; starts a timer when data changes; cancels on unmount.
+   - Calls onSave(data) via await adapter.saveDraft(); catches and returns error.
+
+2) Visual feedback:
+   - Return {status: 'idle'|'saving'|'saved'|'error', error?: string}
+   - Consumers can show "Saving…" / "Saved" / "Failed to save".
+
+3) Integrate into:
+   - app/growrix-admin/blog/posts/new/page.tsx
+   - app/growrix-admin/blog/posts/[id]/page.tsx
+   Use the hook to autosave title/content/metadata to the mock adapter.
+
+⚠️ DO NOT:
+- Do NOT add form submission to server.
+- Do NOT change existing layout or remove components.
+- Do NOT block typing while saving.
+
+✅ Acceptance:
+- Typing updates trigger "Saving…" then "Saved" in UI (e.g., near title).
+- Refreshing retains mock post content from in-memory store (module lifetime).
+- No network calls or DB usage.
+
+
+Teaching (brief):
+Effect: Real autosave UX.
+What you’ll see: Non‑blocking “Saving…” → “Saved” while editing.
+Why it matters: Matches autosave requirement in blueprint.
+
+DONE
+
+🟡 Prompt 8 — Status Actions Bar (Draft/Publish/Unpublish/Archive) — Mocked
+Open: components/blog/PostEditor/Sidebar/StatusCard.tsx (or equivalent)
+
+1) Add action buttons wired to mock adapter:
+   - Save Draft (calls saveDraft)
+   - Publish Now (publishNow)
+   - Unpublish (unpublish)
+   - Archive (archive)
+   - Schedule (opens date-time UI but no backend yet — handled in Prompt 10)
+
+2) UI behavior:
+   - Disable/enable buttons based on current post.status
+     draft → Publish enabled, Unpublish disabled
+     published → Unpublish enabled, Publish disabled
+     archived → only Restore (optional) enabled
+   - Show toasts or inline status text upon success/fail.
+
+3) Wire via adapter methods (no DB):
+   Import from '@/lib/mocks/blogAdapter'
+
+⚠️ DO NOT:
+- Do NOT call any server actions or APIs.
+- Do NOT change URL routing.
+- Do NOT implement scheduling persistence yet.
+
+✅ Acceptance:
+- Buttons change status locally and reflect new badges in the editor header and Posts table mocks.
+- Errors are handled gracefully with a toast.
+
+
+Teaching (brief):
+Effect: End‑to‑end lifecycle UX in mock world.
+What you’ll see: Buttons immediately flip status badges.
+Why it matters: Aligns with lifecycle (draft/publish/unpublish/archive) before DB.
+
+DONE
+
+🟡 Prompt 9 — Revisions Panel (Timeline, Preview, Restore) — Mocked
+Create: components/blog/PostEditor/Sidebar/RevisionsCard.tsx (if not created) and a small Preview dialog.
+
+1) Revisions UI:
+   - List items: timestamp, author (mock), snippet (first 80 chars), buttons: Preview, Restore (Restore disabled if identical to current).
+   - Fetch with adapter.listRevisions(postId).
+   - On autosave or manual Save Draft, push a new revision (via adapter.saveDraft implementing snapshots).
+
+2) Preview:
+   - Open a modal showing the revision content read-only.
+
+3) Restore:
+   - Calls adapter.restoreRevision(postId, revisionId), updates editor state.
+
+⚠️ DO NOT:
+- Do NOT touch database code or add API routes.
+- Do NOT implement diff view yet (text-only preview is fine).
+
+✅ Acceptance:
+- Saving creates a new revision entry.
+- Preview shows revision content.
+- Restore replaces current editor content with chosen revision.
+
+
+Teaching (brief):
+Effect: Revision history UX present.
+What you’ll see: A list of revisions, preview modal, restore works (mock).
+Why it matters: Satisfies revision/restore requirement pre‑DB.
+DONE
+
+🟡 Prompt 10 — Scheduling UI + Slug Duplicate Check + Media Picker (Mock)
+A) Scheduling UI (in StatusCard or a new ScheduleCard)
+- Add a DateTime picker (client-only) and a "Schedule" button.
+- When clicked, set status='scheduled' and set a local published_at on the post via adapter.saveDraft.
+- Show a badge "Scheduled" with the chosen time. No timers/cron yet.
+
+B) Slug duplicate check (in Slug/Permalink card)
+- Add an inline "Check" button beside slug input.
+- On click, call adapter.checkSlugUnique(slug) and surface one of:
+  ✓ "Slug available" or ✕ "Slug already exists"
+- Keep Save/Publish disabled state unchanged for now (UI only).
+
+C) Media selection UX
+- In FeaturedImageCard, add a button "Choose from Library".
+- Clicking opens the existing Media Library component in "selection mode".
+- On select, call adapter.pickFeaturedImage() (mock) and display the chosen asset preview + ALT input (disabled).
+
+⚠️ DO NOT:
+- Do NOT implement actual cron or server publish.
+- Do NOT upload or read real files.
+- Do NOT modify Media Library routing; only open it in selection mode.
+
+✅ Acceptance:
+- You can pick a date/time → status shows “Scheduled”.
+- Slug check returns "available" or "exists" from mock data.
+- Featured image preview appears after selection (mock asset).
+
+
+Teaching (brief):
+Effect: Scheduling, slug checks, and media selection are usable in UI.
+What you’ll see: Scheduled badge/time; inline slug availability messages; featured image preview.
+Why it matters: Sets UX expectations before backend policies, per blueprint (permalink checks, media integration, scheduling).

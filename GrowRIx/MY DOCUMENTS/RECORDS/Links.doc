@@ -1,0 +1,42 @@
+GitHub Copilot
+
+Here are the local URLs to open and verify each blog/admin page (use http://localhost:3000):
+
+Admin (GrowRix Admin)
+- http://localhost:3000/growrix-admin/blog — Posts list / blog dashboard
+- http://localhost:3000/growrix-admin/blog/posts — (alias) posts listing table
+- http://localhost:3000/growrix-admin/blog/posts/new — Create / Post Editor (title, editor, Publish card)
+- http://localhost:3000/growrix-admin/blog/templates — Content Management (Content Calendar, Review Queue)
+- http://localhost:3000/growrix-admin/blog/editor — Block Editor admin page
+- http://localhost:3000/growrix-admin/blog/post-types — Post Type Manager
+- http://localhost:3000/growrix-admin/blog/workflow — Workflow overview / status
+- http://localhost:3000/growrix-admin/blog/categories — Categories management
+- http://localhost:3000/growrix-admin/blog/tags — Tags management
+
+Public Blog
+- http://localhost:3000/blog — Blog homepage (featured / recent posts)
+- http://localhost:3000/blog/search — Blog search results
+- Example post (replace with actual slugs):  
+  - http://localhost:3000/blog/advanced-react-patterns-for-scalable-applications
+- Category example: http://localhost:3000/blog/category/development
+- Tag example: http://localhost:3000/blog/tag/nextjs
+- Author example: http://localhost:3000/blog/author/alex-rivera
+- RSS / Sitemap (if present):  
+  - http://localhost:3000/rss.xml  
+  - http://localhost:3000/sitemap.xml
+
+Quick checks per page
+- Header/footer present and consistent with main site
+- Theme/colors, spacing, and card backgrounds (#181818 for panels) match spec
+- No duplicate pages or unexpected routes
+- Console / Network: no unexpected errors or production API writes
+- Vitest: run tests after UI changes (per Executional Note)
+
+Tell me if you want a one-click checklist (Playwright script) or a short smoke-test list for each link.
+
+
+
+http://localhost:3000/growrix-admin/blog/templates
+http://localhost:3000/growrix-admin/blog/editor
+http://localhost:3000/growrix-admin/blog/post-types
+http://localhost:3000/growrix-admin/blog/workflow

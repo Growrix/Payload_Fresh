@@ -1,0 +1,236 @@
+Awesome — rolling into **Phase 5 (Performance & SEO)** with precise, copy‑paste prompts. These add **ISR, caching**, **sitemaps**, **RSS/JSON feeds**, **JSON‑LD**, **canonical/robots**, and **image best‑practices**. Strict **Do NOT** guardrails included; **teaching mode ON (brief)** after each prompt.
+
+> This maps to the doc’s **SEO & Sharing** + **Frontend** + **Performance & UX** pillars.
+
+---
+
+# 📂 Phase 5 (Perf & SEO) — Copilot Prompt Pack
+
+---
+
+### 🌀 Prompt 28 — Site Metadata Helpers (title, canonical, open graph, twitter, robots)
+
+```
+Create: lib/seo/meta.ts
+
+Export:
+- buildTitle(parts: string[], siteName = 'GrowRIx'): string
+- canonicalFor(pathname: string): string  // uses NEXT_PUBLIC_SITE_URL
+- baseOpenGraph({title, description, url, images?})
+- baseTwitter({title, description, images?})
+- robotsFor({index=true, follow=true}): Metadata['robots']
+- articleJsonLd(input: {
+    headline: string; description?: string; url: string;
+    image?: string; datePublished?: string; dateModified?: string;
+    authorName?: string; publisherName?: string;
+  }): object
+
+Notes:
+- All helpers are pure functions returning plain objects compatible with Next Metadata / JSON-LD.
+
+⚠️ DO NOT:
+- Do NOT fetch data here.
+- Do NOT hardcode the site URL; read process.env.NEXT_PUBLIC_SITE_URL.
+
+✅ Acceptance:
+- Helpers compile and can be imported by routes.
+```
+
+**Teaching (brief):**
+
+* **Effect:** One place for SEO primitives.
+* **What you’ll see:** Reusable functions used by blog pages.
+* **Why it matters:** Enables consistent meta/OG/Twitter/robots/JSON‑LD across pages.
+
+---
+
+### 🧭 Prompt 29 — Per‑Page Metadata (Front Blog)
+
+```
+Update:
+- app/blog/page.tsx
+- app/blog/[slug]/page.tsx
+- app/category/[slug]/page.tsx
+- app/tag/[slug]/page.tsx
+- app/author/[slug]/page.tsx
+
+For each, export async function generateMetadata(props):
+- Use lib/seo/meta.ts to set:
+  - title (use buildTitle)
+  - alternates.canonical (canonicalFor)
+  - openGraph (baseOpenGraph with page-specific title/desc/url/og-image)
+  - twitter (baseTwitter)
+  - robots (robotsFor)
+
+For [slug], also return JSON-LD:
+- In the page component, render a <script type="application/ld+json">{JSON.stringify(articleJsonLd({...}))}</script>
+- Use post title, description (excerpt), url, image (cover if present), published_at, updated_at, author.
+
+⚠️ DO NOT:
+- Do NOT add client-side data fetching.
+- Do NOT change page paths or params shape.
+
+✅ Acceptance:
+- All front pages export generateMetadata without type errors.
+- Single post page renders Article JSON-LD.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Each public page has proper meta/OG/Twitter/JSON‑LD.
+* **What you’ll see:** Metadata changes in page source; JSON‑LD on posts.
+* **Why it matters:** Covers SEO core requirements per blueprint.
+
+---
+
+### 🧱 Prompt 30 — Sitemaps (index + posts/categories/tags)
+
+```
+Create: app/sitemap.xml/route.ts
+- Return an index sitemap referencing:
+  - /sitemap-posts.xml
+  - /sitemap-categories.xml
+  - /sitemap-tags.xml
+- Set content-type: application/xml
+- Compute <lastmod> from latest row if possible; else omit.
+
+Create: app/sitemap-posts.xml/route.ts
+- Query published posts (v_public_posts).
+- Emit <url><loc>post-url</loc><lastmod>published_at</lastmod></url> per post.
+
+Create: app/sitemap-categories.xml/route.ts and app/sitemap-tags.xml/route.ts
+- Query categories/tags with at least one published post (optional initial version: list all).
+- Emit <url> entries with canonical category/tag URLs.
+
+Implementation details:
+- Use server-side queries only.
+- Use streams or string concat; keep simple.
+
+⚠️ DO NOT:
+- Do NOT add auth checks.
+- Do NOT include drafts/scheduled posts.
+
+✅ Acceptance:
+- Visiting /sitemap.xml shows an index with 3 child sitemaps.
+- Child sitemaps list URLs when data exists; otherwise valid empty sets.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Full sitemap coverage (index + posts + taxonomies).
+* **What you’ll see:** Valid XML at the 4 routes.
+* **Why it matters:** Improves crawl + discoverability per plan.
+
+---
+
+### 📰 Prompt 31 — Feeds (RSS 2.0 + JSON Feed)
+
+```
+Create: app/feed.xml/route.ts
+- Build RSS 2.0 for latest 30 published posts from v_public_posts.
+- Required tags: rss/channel/title, link, description, lastBuildDate, item(title, link, guid, pubDate, description).
+- Use site-wide title and NEXT_PUBLIC_SITE_URL.
+
+Create: app/feed.json/route.ts
+- Build JSON Feed v1 with items: id, url, title, content_html (rendered excerpt or safe subset), date_published, image (cover), authors.
+
+Set headers:
+- 'content-type': 'application/rss+xml' and 'application/feed+json'
+
+⚠️ DO NOT:
+- Do NOT include drafts/scheduled.
+- Do NOT render full HTML content if not available; use excerpt.
+
+✅ Acceptance:
+- /feed.xml and /feed.json return valid feeds with 0–30 items.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Subscribers and integrations can follow updates.
+* **What you’ll see:** Two working feeds with recent posts.
+* **Why it matters:** Matches blueprint’s RSS/JSON requirement.
+
+---
+
+### ⚡ Prompt 32 — ISR + Caching for Public Routes
+
+```
+Goal: Enable static generation with revalidation for public blog pages.
+
+1) In app/blog/page.tsx and app/blog/[slug]/page.tsx:
+   - Export: export const revalidate = 300;  // 5 minutes
+   - Ensure data fetching uses server-side helpers only.
+   - On missing post, return notFound() to enable 404 caching.
+
+2) For category/tag/author pages:
+   - Also export revalidate = 300.
+
+3) Add a small cache layer for DB reads:
+   - Create lib/cache/serverCache.ts with a simple in-memory Map keyed by (key:string, ttlMs:number).
+   - Wrap read-heavy queries (public list/single) with cache.getOrSet.
+
+⚠️ DO NOT:
+- Do NOT cache any admin routes or authenticated content.
+- Do NOT add revalidate to admin pages.
+
+✅ Acceptance:
+- Pages build and revalidate without errors.
+- Subsequent visits within revalidate window are fast.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Faster public pages and controlled freshness.
+* **What you’ll see:** Snappier `/blog` and post pages, periodic refresh.
+* **Why it matters:** Delivers performance gains while keeping content reasonably fresh.
+
+---
+
+### 🖼️ Prompt 33 — Image Best‑Practices (responsive, placeholders)
+
+```
+1) Create: lib/seo/images.ts
+   - postOgImage(post): picks best image URL (cover or fallback).
+   - ogImageParams(url): returns { width, height } if known or defaults.
+
+2) Update front components rendering images (list/single):
+   - Use Next.js <Image> with fill or width/height.
+   - Add sizes attributes for responsive behavior.
+   - Use placeholder='blur' with a tiny blurDataURL if available; otherwise omit.
+
+3) next.config.js:
+   - Append allowed domains (do not remove existing).
+   - Ensure images.domains includes your asset host if different.
+
+⚠️ DO NOT:
+- Do NOT introduce a third-party image CDN here.
+- Do NOT load unbounded images without sizes.
+
+✅ Acceptance:
+- Build passes; images render responsively on blog pages.
+- No Next image warnings in console.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Better LCP/CLS with responsive images.
+* **What you’ll see:** Stable layout, crisp images, fewer layout shifts.
+* **Why it matters:** Meets performance & UX goals in the plan.
+
+---
+
+## ✅ Phase 5 Exit Criteria
+
+* Metadata helpers used by front pages; **Article JSON‑LD** on single posts.
+* **/sitemap.xml**, **/sitemap-posts.xml**, **/sitemap-categories.xml**, **/sitemap-tags.xml** live.
+* **/feed.xml** (RSS2) and **/feed.json** (JSON Feed) live.
+* **ISR** enabled for public routes (no admin caching).
+* Images optimized via `<Image>` with proper sizes/placeholders.
+* No changes to RLS/auth; admin unaffected.
+
+---
+
+### Want Phase 6 next (Testing & Ops)?
+
+I can generate a lean prompt pack for **Playwright smoke**, **Vitest units**, **CI (typecheck/test/build)**, and a tidy **.env.example** check—same guardrails and teaching notes.

@@ -1,0 +1,151 @@
+🟢 Prompt 1 — Admin Categories & Tags Pages
+You are my code generator. Add new pages under /app/growrix-admin/blog:
+
+1. Create file: app/growrix-admin/blog/categories/page.tsx
+   - Render a simple Categories table with mock array [{id:1, name:'Design'}, {id:2, name:'Dev'}].
+   - Columns: Name, Slug, Actions (Edit/Delete disabled).
+   - Add “Create Category” button (disabled).
+
+2. Create file: app/growrix-admin/blog/tags/page.tsx
+   - Render a simple Tags table with mock array [{id:1, name:'Next.js'}, {id:2, name:'React'}].
+   - Columns: Name, Slug, Actions (Edit/Delete disabled).
+   - Add “Create Tag” button (disabled).
+
+⚠️ Do NOT:
+- Do NOT connect to Supabase or API yet.
+- Do NOT rename or move folders.
+- Keep imports using `@/components/ui/*` not shadcn.
+
+✅ Acceptance:
+- Visiting /growrix-admin/blog/categories and /tags shows mock tables with buttons.
+- No build errors.
+
+
+Teaching Note:
+
+Effect: Adds missing taxonomy admin pages.
+
+What you’ll see: Two new sidebar items (“Categories”, “Tags”) showing mock tables.
+
+Why it matters: Matches doc’s taxonomy CRUD pillar and keeps us UI-only.
+
+DONE
+
+🟢 Prompt 2 — Extend PostsTable with Filters & Bulk Actions
+Open file: components/blog/PostsTable.tsx
+
+1. Above the table, add a Filters row with:
+   - Search input (disabled)
+   - Status dropdown (disabled)
+   - Category filter dropdown (disabled)
+
+2. Above the table, add Bulk Actions toolbar:
+   - Buttons: Publish, Unpublish, Delete (all disabled)
+
+⚠️ Do NOT:
+- Do NOT wire to backend.
+- Do NOT remove existing table code.
+- Only extend with disabled controls.
+
+✅ Acceptance:
+- PostsTable shows search, filters, and bulk actions toolbar.
+- Buttons and filters render but are disabled.
+
+
+Teaching Note:
+
+Effect: Extends admin PostsTable UI.
+
+What you’ll see: Filters/search row + disabled bulk actions bar.
+
+Why it matters: Prepares UX for lifecycle management without breaking mocks.
+
+DONE
+
+🟢 Prompt 3 — Post Editor Sidebar (SEO, Taxonomies, Featured Image, Revisions)
+Open folder: components/blog/PostEditor/Sidebar
+
+1. Add new components:
+   - SeoPanel.tsx: Card with Meta Title, Meta Description inputs (disabled).
+   - TaxonomyPanel.tsx: Card with Categories multi-select + Tags chips (disabled).
+   - FeaturedImageCard.tsx: Card with “Select Featured Image” button (disabled).
+   - RevisionsCard.tsx: Card with empty state “No revisions yet” (disabled).
+
+2. Import these into app/growrix-admin/blog/posts/new/page.tsx and [id]/page.tsx
+   - Place them in right sidebar below existing StatusCard.
+
+⚠️ Do NOT:
+- Do NOT enable form submission.
+- Do NOT remove or rewrite StatusCard.
+- Only add new sidebar cards with disabled inputs.
+
+✅ Acceptance:
+- New Post/Edit pages show 4 new sidebar sections.
+- Inputs/buttons visible but disabled.
+- No backend calls.
+
+
+Teaching Note:
+
+Effect: Expands editor sidebar with doc’s required panels.
+What you’ll see: Sidebar cards (SEO, Taxonomies, Featured Image, Revisions).
+Why it matters: Matches blueprint’s editor and metadata pillars.
+
+DONE
+
+🟢 Prompt 4 — Front Blog Pages (UI Stubs)
+Create the following routes under /app:
+
+1. app/blog/page.tsx
+   - Render “Blog Home” with mock post list [{id:1,title:'Hello World'},{id:2,title:'Second Post'}].
+
+2. app/blog/[slug]/page.tsx
+   - Render a mock single post page showing Title + Content placeholder.
+
+3. app/category/[slug]/page.tsx
+   - Render “Category Archive” with mock list of posts.
+
+4. app/tag/[slug]/page.tsx
+   - Render “Tag Archive” with mock list of posts.
+
+5. app/author/[slug]/page.tsx
+   - Render “Author Archive” with mock list of posts.
+
+⚠️ Do NOT:
+- Do NOT use Supabase or real queries.
+- Do NOT implement ISR yet.
+
+✅ Acceptance:
+- Visiting /blog, /blog/[slug], /category/abc, /tag/abc, /author/jane shows mock pages.
+- No build errors.
+
+
+Teaching Note:
+Effect: Adds all front-site blog routes.
+What you’ll see: Mock blog list, single post, and archive pages.
+Why it matters: Matches doc’s front-site features pillar and keeps UI in place for later DB wiring.
+
+🟢 Prompt 5 — Admin Sidebar Links
+Open file: components/admin/AdminSidebar.tsx
+
+1. Add new nav items under Blog:
+   - Posts (/growrix-admin/blog/posts)
+   - Categories (/growrix-admin/blog/categories)
+   - Tags (/growrix-admin/blog/tags)
+   - Media (/growrix-admin/media)
+   - Settings (disabled link)
+
+⚠️ Do NOT:
+- Do NOT change existing nav styling.
+- Do NOT remove existing links.
+
+✅ Acceptance:
+- Sidebar now shows Posts, Categories, Tags, Media, Settings.
+- Links navigate correctly (except Settings disabled).
+
+
+Teaching Note:
+
+Effect: Expands sidebar nav for blog admin.
+What you’ll see: New links appear under Blog.
+Why it matters: Gives admin parity with WordPress nav structure.

@@ -1,0 +1,362 @@
+Awesome — moving into **Phase 3 (DB/API)** while keeping your workflow intact. These are **copy‑paste Copilot/Cursor prompts** with hard **Do NOT** guardrails and **acceptance** checks. Teaching mode is **ON (brief)** after each prompt. We’ll: create schema, wire Supabase clients, add a thin DB layer, and expose **server actions**, but we will **NOT** turn on RLS yet (that’s Phase 4).
+
+> The schema, indexes, unique slugs, and public view mirror your master plan’s checklist for posts, categories/tags, assets, revisions, slugs, and query performance.
+
+---
+
+# 📂 Phase 3 (DB/API) — Copilot Prompt Pack
+
+---
+
+### 🔵 Prompt 11 — SQL Migration (tables, indexes, view) — **No RLS yet**
+
+```
+You are my Supabase SQL author. Create a single migration file:
+
+Path: supabase/migrations/2025-08-21_blog.sql
+
+-- Requirements:
+-- 1) Tables: posts, categories, tags, post_categories, post_tags, assets, revisions
+-- 2) Common columns: id uuid pk default gen_random_uuid(), org_id uuid not null, created_at timestamptz default now(), updated_at timestamptz default now()
+-- 3) posts columns: author_id uuid, title text not null, slug text not null, excerpt text, cover_asset uuid null,
+--    content_json jsonb default '{}'::jsonb, status text check (status in ('draft','scheduled','published','archived')) default 'draft',
+--    published_at timestamptz null, meta_json jsonb default '{}'::jsonb
+-- 4) categories/tags: name text not null, slug text not null, parent_id uuid null (only for categories)
+-- 5) assets: bucket text not null, path text not null, mime text, width int, height int, alt text, caption text, uploader_id uuid null
+-- 6) revisions: post_id uuid not null, content_json jsonb, meta_json jsonb, author_id uuid, note text
+
+-- 7) Constraints (multi-tenant):
+--    unique(org_id, slug) on posts, categories, tags
+--    foreign keys with on delete cascade where appropriate
+-- 8) Indexes:
+--    posts(org_id, status, published_at desc)
+--    gin_trgm indexes for fuzzy: posts.title, posts.excerpt
+-- 9) View:
+--    v_public_posts: select published posts only (status='published' and published_at <= now()),
+--    exposing: id, org_id, title, slug, excerpt, cover_asset, content_json, meta_json, published_at
+
+-- 10) DO NOT enable RLS in this migration. That will be Phase 4.
+
+-- Return the full SQL file content.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Creates durable blog schema to back current UI/UX.
+* **What you’ll see:** New SQL migration under `supabase/migrations/`.
+* **Why it matters:** Matches blueprint for slugs, lifecycle fields, and performance indexes.
+
+---
+
+### 🔵 Prompt 12 — Env + Supabase Clients (server/client)
+
+```
+1) Create .env.example at project root with:
+   SUPABASE_URL=
+   SUPABASE_ANON_KEY=
+   SUPABASE_SERVICE_ROLE_KEY=
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+2) Update lib/supabase/server.ts to a real server client:
+   - export function getServerSupabase(): SupabaseClient
+   - Use '@supabase/supabase-js' v2 createClient with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
+   - Mark file with 'server-only' import to prevent client bundling.
+
+3) Update lib/supabase/client.ts for client-side anon usage:
+   - export function getBrowserSupabase(): SupabaseClient using ANON key
+   - Never import this from server files.
+
+⚠️ DO NOT:
+- Do NOT add NextAuth or middleware here.
+- Do NOT check in real secrets; only .env.example.
+- Do NOT call getBrowserSupabase() in server actions.
+
+✅ Acceptance:
+- Typecheck passes.
+- Importing getServerSupabase() in server files works; no client bundling warnings.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Real Supabase clients for server and browser.
+* **What you’ll see:** `.env.example` and working helper functions.
+* **Why it matters:** Clean separation for server actions now; auth/RLS later.
+
+---
+
+### 🔵 Prompt 13 — Adapter Indirection (swap mocks → real, safely)
+
+```
+Goal: Introduce a stable adapter entrypoint and switch imports minimally.
+
+1) Create file: lib/blogAdapter.ts
+   - Re-export the exact Phase-2 surface:
+     listPosts, getPost, saveDraft, publishNow, unpublish, archive,
+     listRevisions, restoreRevision, checkSlugUnique, listCategories,
+     listTags, pickFeaturedImage
+   - Initially implement by calling new service functions (to be added in next prompts).
+
+2) Update imports in these specific files ONLY:
+   - components/blog/PostsTable.tsx
+   - components/blog/PostEditor/Sidebar/StatusCard.tsx
+   - components/blog/PostEditor/Sidebar/RevisionsCard.tsx
+   - components/blog/PostEditor/Sidebar/SeoPanel.tsx
+   - components/blog/PostEditor/Sidebar/TaxonomyPanel.tsx
+   - components/blog/PostEditor/Sidebar/FeaturedImageCard.tsx
+   - app/growrix-admin/blog/posts/new/page.tsx
+   - app/growrix-admin/blog/posts/[id]/page.tsx
+   Replace `@/lib/mocks/blogAdapter` with `@/lib/blogAdapter`.
+
+3) Keep lib/mocks/blogAdapter.ts untouched.
+
+⚠️ DO NOT:
+- Do NOT change component props or UI behavior.
+- Do NOT delete the mocks file.
+- Do NOT update any other import paths beyond the list above.
+
+✅ Acceptance:
+- App builds and still works with mocks (temporarily stub functions in lib/blogAdapter.ts that call mocks).
+- All future code references `@/lib/blogAdapter`.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Single switch point for data source.
+* **What you’ll see:** One adapter file controls mock vs. real.
+* **Why it matters:** Lets us flip to DB without touching UI later — no churn.
+
+---
+
+### 🔵 Prompt 14 — DB Layer (server-side modules only)
+
+```
+Create the following server-only modules. All functions accept { orgId, ... } first.
+
+A) lib/database/posts.ts
+- list({orgId, q?, status?, categoryIds?, tagIds?, limit=20, offset=0})
+- getById({orgId, id})
+- getBySlug({orgId, slug})
+- checkSlugUnique({orgId, slug}) -> boolean
+- create({orgId, authorId, title, slug, excerpt?, cover_asset?, content_json?, meta_json?})
+- update({orgId, id, patch})
+- setStatus({orgId, id, status, published_at?})
+- searchPublic({orgId, q, limit=20, offset=0}) -> from v_public_posts
+
+B) lib/database/taxonomies.ts
+- listCategories({orgId}), listTags({orgId})
+- createCategory({orgId, name, slug, parent_id?}), createTag(...)
+- assignToPost({orgId, postId, categoryIds?, tagIds?})
+
+C) lib/database/revisions.ts
+- list({orgId, postId})
+- add({orgId, postId, authorId, content_json, meta_json, note?})
+- restore({orgId, postId, revisionId})
+
+D) lib/database/assets.ts
+- list({orgId, q?, type?, limit?, offset?})
+- get({orgId, id})
+- create({orgId, data})  -- metadata only; uploading handled elsewhere
+
+Implementation notes:
+- Use getServerSupabase().
+- Scope every query with .eq('org_id', orgId).
+- Return typed shapes; wrap supabase errors into thrown Error with message.
+
+⚠️ DO NOT:
+- Do NOT implement RLS checks here.
+- Do NOT mark routes as revalidate; leave caching to Phase 5.
+- Do NOT import client-side supabase.
+
+✅ Acceptance:
+- Files compile; sample calls from a Node REPL (server action) return rows.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Thin, testable data access layer.
+* **What you’ll see:** CRUD functions that line up with UI/UX needs.
+* **Why it matters:** Follows doc’s schema and unique slug/search requirements.
+
+---
+
+### 🔵 Prompt 15 — Services Layer (domain logic; wraps DB)
+
+```
+Create: lib/services/blogService.ts (server-only)
+
+Export functions that match adapter names:
+- listPosts(params) -> calls database.posts.list + joins categories/tags names (second queries)
+- getPost({orgId, id|'new'}) -> if 'new', return sensible defaults
+- saveDraft({orgId, id?, patch}) -> upsert + add revision on change
+- publishNow({orgId, id}) -> setStatus(..., 'published', published_at=now())
+- unpublish({orgId, id}) -> setStatus(..., 'draft', published_at=null)
+- archive({orgId, id}) -> setStatus(..., 'archived')
+- listRevisions({orgId, postId}) -> revisions.list
+- restoreRevision({orgId, postId, revisionId}) -> revisions.restore
+- checkSlugUnique({orgId, slug}) -> database.posts.checkSlugUnique
+- listCategories/listTags -> taxonomies.list*
+- pickFeaturedImage({orgId}) -> return a placeholder Asset for now
+
+Notes:
+- This file should be the single spot where post/taxonomy join logic lives.
+- Export named functions only.
+
+⚠️ DO NOT:
+- Do NOT import React or client libs here.
+- Do NOT perform access control checks (Phase 4).
+
+✅ Acceptance:
+- All functions compile and return data from DB when tables are populated.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Business logic surface aligned with UI adapter.
+* **What you’ll see:** One place to evolve rules (e.g., auto-revision).
+* **Why it matters:** Keeps UI stable and prevents duplication.
+
+---
+
+### 🔵 Prompt 16 — Server Actions (co‑located with admin routes)
+
+```
+Create file: app/growrix-admin/blog/posts/actions.ts (server)
+
+Export async server actions:
+- actionListPosts(form/filter params) -> blogService.listPosts
+- actionGetPost(id|'new') -> blogService.getPost
+- actionSaveDraft(patch) -> blogService.saveDraft
+- actionPublishNow(id) -> blogService.publishNow
+- actionUnpublish(id) -> blogService.unpublish
+- actionArchive(id) -> blogService.archive
+- actionListRevisions(postId) -> blogService.listRevisions
+- actionRestoreRevision(postId, revisionId) -> blogService.restoreRevision
+- actionCheckSlugUnique(slug) -> blogService.checkSlugUnique
+
+Implementation details:
+- Accept orgId as an explicit param for now. In Phase 4 we’ll derive from session.
+- Wrap errors and return {ok:false,error} instead of throwing across boundary.
+
+Wire-up:
+- Update editor pages and PostsTable to call these actions inside the adapter (next prompt).
+
+⚠️ DO NOT:
+- Do NOT import client supabase.
+- Do NOT add middleware/auth yet.
+
+✅ Acceptance:
+- Server actions compile and can be manually called from pages without runtime errors.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Stable server entrypoints the UI can call.
+* **What you’ll see:** Importable actions with `{ok, data}` style results.
+* **Why it matters:** Clean seam for Phase 4 to add role checks.
+
+---
+
+### 🔵 Prompt 17 — Flip the Adapter to Real Services (keep mocks as fallback)
+
+```
+Open: lib/blogAdapter.ts
+
+1) Replace temporary stubs to call blogService.* functions.
+   - Import * as blogService from '@/lib/services/blogService'
+
+2) Adapter behavior:
+   - If process.env.NEXT_PUBLIC_USE_MOCKS === '1', forward to '@/lib/mocks/blogAdapter'
+   - Else call blogService (default path).
+
+3) Confirm the editor pages and table use '@/lib/blogAdapter' (from Prompt 13).
+
+⚠️ DO NOT:
+- Do NOT change component code other than existing adapter imports (already done).
+- Do NOT delete mocks.
+
+✅ Acceptance:
+- With NEXT_PUBLIC_USE_MOCKS unset, actions hit DB.
+- If set to '1', UI works with mocks.
+```
+
+**Teaching (brief):**
+
+* **Effect:** One env switch toggles real vs mock backend.
+* **What you’ll see:** UI keeps working; now persists to DB.
+* **Why it matters:** Safe rollout and easy local demos.
+
+---
+
+### 🔵 Prompt 18 — Assets & Media (metadata now, uploads later)
+
+```
+Create: lib/services/mediaService.ts (server-only)
+- listAssets({orgId, q?, type?}) -> database.assets.list
+- createAssetMetadata({orgId, meta}) -> database.assets.create
+- getAsset({orgId, id})
+
+Note:
+- Actual upload (Storage) will be wired in Phase 4/5 when auth + policies exist.
+- For now, Featured Image selection in UI can accept an existing asset row.
+
+⚠️ DO NOT:
+- Do NOT attempt client-side uploads yet.
+- Do NOT write storage policies or RLS.
+
+✅ Acceptance:
+- Functions compile and return asset rows.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Media metadata backed by DB; storage later.
+* **What you’ll see:** Ability to select known assets by id.
+* **Why it matters:** Unblocks Featured Image wiring once assets exist.
+
+---
+
+### 🔵 (Optional) Prompt 19 — Front Pages Read from `v_public_posts` (no ISR yet)
+
+```
+Update:
+- app/blog/page.tsx -> fetch list from v_public_posts using database.posts.searchPublic({orgId,q})
+- app/blog/[slug]/page.tsx -> fetch single via database.posts.getBySlug({orgId, slug})
+
+UI notes:
+- Maintain current markup; only swap data source.
+- If no data, render existing mock placeholders.
+
+⚠️ DO NOT:
+- Do NOT add ISR, revalidate, or caching yet (Phase 5).
+- Do NOT add search page yet.
+
+✅ Acceptance:
+- If DB has published posts, front pages show real content; otherwise fall back gracefully.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Front pages can display real posts.
+* **What you’ll see:** Real data on `/blog` and `/blog/[slug]`.
+* **Why it matters:** Validates schema and server actions in the wild.
+
+---
+
+## ✅ Phase 3 Exit Criteria
+
+* Migration exists and runs (tables, indexes, view).
+* Supabase clients configured; `.env.example` present.
+* DB layer + Services layer compile and return data.
+* Server actions callable from editor/pages.
+* Adapter flips to real services by default, with mock fallback flag.
+* (Optional) Front pages show real published posts.
+
+---
+
+## Notes to Future‑You (safe merge)
+
+* Tag this merge **`v2-db`**.
+* Leave RLS/roles/middleware for **Phase 4**; your tables already include `org_id` so policies can slot in cleanly.
+* Keep using `@/lib/blogAdapter` everywhere; it’s our permanent seam.
+
+Want me to generate **Phase 4 (Security & RLS)** patch prompts next (auth, orgs/members/roles tables, policies, middleware, action guards) so you can save them as the next doc?

@@ -1,0 +1,268 @@
+Awesome — here’s **Phase 4 (Security & RLS)** as a tight, copy‑paste **Copilot/Cursor prompt pack**. It follows the plan: add **auth + orgs/roles**, **enable RLS**, **protect admin routes**, and **gate server actions** — with strict **Do NOT** guardrails and short **teaching notes**. We’ll align to your doc’s goals (multi‑tenant, roles/permissions) and RLS shape from the earlier schema prompts.
+
+Teaching mode: **ON (brief)** after each prompt.
+
+---
+
+# 📂 Phase 4 (Security & RLS) — Copilot Prompt Pack
+
+> Scope: Supabase Auth wiring, orgs/members/roles tables, **RLS policies for all blog tables**, server‑action guards, middleware to protect `/growrix-admin/*`, storage access policy for assets.
+> Out of scope here (next phases): SEO/feeds/ISR, analytics, comments.
+
+---
+
+### 🔒 Prompt 20 — Orgs/Members/Roles + Enable RLS for Blog Tables
+
+```
+You are my Supabase SQL author. Create a migration that introduces organizations and enables RLS on existing blog tables.
+
+Path: supabase/migrations/2025-08-21_rls_orgs.sql
+
+-- A) Roles & orgs
+-- 1) enum role_type: 'owner','admin','editor','author','contributor','viewer'
+-- 2) table orgs(id uuid pk default gen_random_uuid(), name text not null, created_at timestamptz default now())
+-- 3) table org_members(id uuid pk default gen_random_uuid(), org_id uuid not null references orgs(id) on delete cascade, user_id uuid not null, role role_type not null, created_at timestamptz default now(), unique(org_id, user_id))
+
+-- B) Enable RLS on all content tables created earlier (posts, categories, tags, post_categories, post_tags, assets, revisions)
+-- Assume each has org_id; turn ON row level security.
+
+-- C) Policies (multi-tenant)
+-- Helpers:
+-- current_user_id() := auth.uid()
+-- member_of(org_id) := exists(select 1 from org_members m where m.org_id = <table>.org_id and m.user_id = auth.uid())
+
+-- Read policies (broad):
+-- Allow: org members can SELECT rows where member_of(org_id).
+
+-- Write policies (strict):
+-- posts: INSERT/UPDATE/DELETE allowed to roles in ('editor','admin','owner').
+-- posts: Allow authors to UPDATE their own posts when status='draft' (author_id = auth.uid()).
+-- categories/tags/post_* join tables: only ('editor','admin','owner').
+-- revisions: INSERT allowed when member_of(org_id); DELETE restricted to ('admin','owner').
+-- assets: INSERT/UPDATE/DELETE allowed to ('editor','admin','owner'); SELECT to members.
+
+-- D) Public view remains public:
+-- v_public_posts stays readable to anon (no RLS on view), but it should select only status='published' and published_at <= now().
+
+-- Return the full SQL.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Adds orgs/members/roles + turns on RLS across blog data.
+* **What you’ll see:** New migration; queries now require authenticated membership.
+* **Why it matters:** Matches doc’s multi‑tenant + roles requirement and enforces per‑org isolation.
+
+---
+
+### 🔒 Prompt 21 — Auth Wiring (Server Utilities) + Derive orgId
+
+```
+Create: lib/auth/session.ts (server-only)
+
+Export:
+- getSessionUser(): Promise<{ id: string; email?: string } | null>
+  Uses getServerSupabase() to call auth.getUser(); return minimal shape.
+- getUserOrThrow(): same but throws Error('UNAUTHENTICATED') if null.
+- getActiveOrgId(): Promise<string>
+  Strategy:
+   1) Check cookie 'orgId'
+   2) Else query org_members where user_id = current user; pick the first org_id
+   3) Else create a dev org automatically ONLY if NODE_ENV !== 'production', name 'Dev Org', insert org_members(owner)
+- setActiveOrgCookie(orgId: string): sets cookie for subsequent requests.
+
+⚠️ DO NOT:
+- Do NOT import client-side supabase here.
+- Do NOT return full user metadata; keep minimal.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Central place to get user + org for server code.
+* **What you’ll see:** Simple helpers you can reuse in actions/services.
+* **Why it matters:** Lets services stop taking orgId from the client (reduces spoofing).
+
+---
+
+### 🔒 Prompt 22 — Middleware to Protect `/growrix-admin/*`
+
+```
+Create: middleware.ts at project root
+
+Behavior:
+- For any request path starting with /growrix-admin:
+  1) Use getServerSupabase() and supabase.auth.getUser() to check session.
+  2) If no user -> redirect to /admin-login with ?next=<original>
+- For other paths, do nothing.
+
+Edge-safe:
+- Use NextResponse and NextRequest from 'next/server'
+- Avoid heavy imports
+
+⚠️ DO NOT:
+- Do NOT block public routes like /blog or /
+- Do NOT read database in middleware (auth-only check)
+```
+
+**Teaching (brief):**
+
+* **Effect:** Locks down the entire admin area.
+* **What you’ll see:** Unauthed users are bounced to `/admin-login`.
+* **Why it matters:** Enforces admin/private boundary consistent with roles plan.
+
+---
+
+### 🔒 Prompt 23 — Replace Fake Login with Real Auth Actions
+
+```
+A) Create: app/admin-login/actions.ts (server)
+- signInWithOtp(email: string): calls supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: process.env.NEXT_PUBLIC_SITE_URL + '/growrix-admin' } })
+- signOut(): supabase.auth.signOut()
+
+B) Patch: components/admin/AdminLoginForm.tsx
+- On submit, call server action signInWithOtp(email). If ok, show "Check your email" message.
+- Remove fake router push; keep UI the same.
+- Add a small note: "Use magic link sent to your email."
+
+⚠️ DO NOT:
+- Do NOT add NextAuth in this phase.
+- Do NOT implement password flows.
+- Do NOT alter the route paths or Admin UI structure.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Real, low‑friction auth via Supabase magic link.
+* **What you’ll see:** Form triggers email; admin opens via link.
+* **Why it matters:** Minimal code churn; production‑ready pattern.
+
+---
+
+### 🔒 Prompt 24 — Server‑Action Guards (Role‑aware)
+
+```
+Create: lib/auth/guards.ts (server-only)
+
+Export:
+- requireUser(): returns {user} or throws 'UNAUTHENTICATED'
+- requireMember(orgId: string): ensures row exists in org_members for user
+- requireRole(orgId: string, allowed: role_type[]): ensures user's role in allowed list; else throw 'FORBIDDEN'
+- requireAuthorOrRole({orgId, postAuthorId, allowedRoles}):
+   if user.id === postAuthorId -> ok for draft updates
+   else requireRole(orgId, allowedRoles)
+
+Usage pattern:
+- Server actions call getUserOrThrow() + getActiveOrgId()
+- For reads: requireMember(orgId)
+- For writes: requireRole(orgId, ['editor','admin','owner'])
+- For author-draft updates: requireAuthorOrRole({orgId, postAuthorId, allowedRoles:['editor','admin','owner']})
+
+⚠️ DO NOT:
+- Do NOT import from 'next/headers' in services; keep guards at the action boundary.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Centralized, testable permission gates.
+* **What you’ll see:** One‑liners in actions to enforce access.
+* **Why it matters:** Mirrors doc’s role semantics (owner/admin/editor full; author limited to own drafts).
+
+---
+
+### 🔒 Prompt 25 — Wire Guards into Existing Server Actions
+
+```
+Open: app/growrix-admin/blog/posts/actions.ts
+
+1) Import { getActiveOrgId, getUserOrThrow } from '@/lib/auth/session'
+   and { requireMember, requireRole, requireAuthorOrRole } from '@/lib/auth/guards'
+
+2) For each action:
+   - const user = await getUserOrThrow()
+   - const orgId = await getActiveOrgId()
+
+   Reads:
+     - await requireMember(orgId)
+   Writes (create/update/status changes/taxonomy assign):
+     - await requireRole(orgId, ['editor','admin','owner'])
+
+   Special case (update draft by author):
+     - await requireAuthorOrRole({ orgId, postAuthorId: existingPost.author_id, allowedRoles:['editor','admin','owner'] })
+
+3) Remove any older code paths that took orgId from the client request body.
+
+⚠️ DO NOT:
+- Do NOT modify UI components; only secure actions.
+- Do NOT change the action export names.
+```
+
+**Teaching (brief):**
+
+* **Effect:** All mutations now role‑gated.
+* **What you’ll see:** If you lack permission, action returns error.
+* **Why it matters:** Enforces “who can do what” per blueprint.
+
+---
+
+### 🔒 Prompt 26 — Storage Bucket & Policies for Assets
+
+```
+Migration: supabase/migrations/2025-08-21_storage_policies.sql
+
+-- Create bucket if not exists: 'public-assets'
+-- Policy (storage.objects):
+-- 1) READ: allow anon read for objects where bucket_id='public-assets' (public assets)
+-- 2) INSERT/UPDATE/DELETE: only org members with roles in ('editor','admin','owner') on paths that start with '<orgId>/'.
+--    We assume asset rows tie to org_id in 'assets' table; enforce path like '<orgId>/<filename>'.
+-- Use storage admin functions to create policy predicates that compare auth.uid() to org_members.
+
+-- Return full SQL with commented rationale.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Safe public reading, restricted writes by editors/admins/owners.
+* **What you’ll see:** Uploads require auth; public files are viewable.
+* **Why it matters:** Matches media requirements without overexposing data.
+
+---
+
+### 🔒 Prompt 27 — Dev Bootstrap (Optional but Helpful)
+
+```
+Create: scripts/dev-seed.ts (node script, ts-node runnable)
+
+- Creates a 'Dev Org' if missing.
+- Adds current user (from a passed USER_ID env or one fetched from auth for local dev) as 'owner'.
+- Inserts a couple of categories/tags and one published post into that org.
+
+⚠️ DO NOT:
+- Do NOT run automatically in production.
+- Do NOT hardcode secrets.
+```
+
+**Teaching (brief):**
+
+* **Effect:** One-command local setup to exercise RLS.
+* **What you’ll see:** Seeded org + sample data visible after login.
+* **Why it matters:** Faster feedback loop for the team.
+
+---
+
+## ✅ Phase 4 Exit Criteria
+
+* Admin routes require authentication (middleware in place).
+* Auth flows use **magic link**; fake login removed.
+* Orgs/members/roles created; **RLS enabled** across blog tables.
+* Server actions **derive orgId** from session and enforce role/author rules.
+* Storage bucket exists with public‑read, role‑guarded writes.
+* UI continues to work; unauthorized operations fail cleanly.
+
+---
+
+## What’s Next
+
+* **Phase 5 (Perf & SEO):** ISR for public routes, sitemaps, feeds, JSON‑LD, caching.
+* **Phase 6 (Testing & Ops):** Playwright smoke for auth/RLS flows; CI typecheck/test/build.
+
+Want me to generate **Phase 5 prompts** now, or do you want to freeze Phase 4 into a doc first?

@@ -1,0 +1,170 @@
+Perfect — now that we’ve reached **Phase 6 (Testing & Ops)**, we’ll finish the chain with ready-to-paste **Copilot prompts**, tightly scoped with **Do NOT rules** and **acceptance criteria**. This phase ensures stability, regression safety, and production readiness before rollout.
+
+I’ll map this directly to your **workflow contract** (UI → UX → DB/API → Security → Perf/SEO → Testing & Ops) and the **Blog Module A–Z** checklist from your scaffold doc.
+
+---
+
+# 📂 Phase 6 (Testing & Ops) — Copilot Prompt Pack
+
+---
+
+### 🧪 Prompt 34 — Vitest Unit Tests for Core Utilities
+
+```
+Add vitest.config.ts with jsdom + TS path support.
+
+Write unit tests under /tests for:
+- lib/seo/meta.ts (buildTitle, canonicalFor, robotsFor, articleJsonLd)
+- lib/cache/serverCache.ts (set/get/expiry logic)
+- lib/utils/slug.ts (if exists: unique slugify, collision handling)
+
+Use describe/test/expect.
+Mock Date.now for cache expiry tests.
+
+⚠️ DO NOT:
+- Do NOT test Supabase directly here.
+- Do NOT test UI components.
+
+✅ Acceptance:
+- vitest run passes 100%.
+- Coverage shows core libs tested.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Confirms our helpers behave correctly.
+* **What you’ll see:** Green vitest output.
+* **Why it matters:** Locks down building blocks before integration.
+
+---
+
+### 🎭 Prompt 35 — Playwright Smoke Tests (Admin + Front)
+
+```
+Add Playwright with TS setup.
+
+Write smoke tests for:
+- Sign-in → navigate to /app/(admin)/blog → assert "Create Post" CTA exists.
+- Create a new draft post → assert it appears in list.
+- Publish post → visit /blog/[slug] → assert h1 matches.
+- Search flow: query "test" on /search → see at least 1 result.
+
+Use test.describe blocks, beforeAll login via helper.
+Use environment var for test user (TEST_EMAIL, TEST_PASSWORD).
+
+⚠️ DO NOT:
+- Do NOT hardcode secrets; pull from process.env.
+- Do NOT add full visual regression yet.
+
+✅ Acceptance:
+- `npx playwright test` runs and passes basic flows.
+- Tests stable across local + CI.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Ensures critical blog flows work E2E.
+* **What you’ll see:** Playwright opens browser, runs flows.
+* **Why it matters:** Guards against regression in lifecycle.
+
+---
+
+### 🔄 Prompt 36 — GitHub Actions CI (typecheck, test, build)
+
+```
+Create .github/workflows/ci.yml with jobs:
+- lint: run `pnpm lint`
+- typecheck: run `pnpm tsc --noEmit`
+- test: run `pnpm test:unit` (vitest) + `pnpm test:e2e` (playwright, headless)
+- build: run `pnpm build`
+
+Cache pnpm store.
+Run on push + PR to main.
+
+⚠️ DO NOT:
+- Do NOT deploy; CI only.
+- Do NOT use secrets other than test creds.
+
+✅ Acceptance:
+- On PR, checks for lint/type/test/build all green.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Automated guardrails on every PR.
+* **What you’ll see:** GitHub PR with ✅ checks.
+* **Why it matters:** Keeps repo healthy & error-free.
+
+---
+
+### 🔑 Prompt 37 — Env Example & Validation
+
+```
+Update .env.example with all required keys:
+- NEXT_PUBLIC_SITE_URL
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY
+- TEST_EMAIL, TEST_PASSWORD (for Playwright)
+
+Add lib/env.ts:
+- Use zod to validate process.env at startup.
+- Export typed env vars.
+
+⚠️ DO NOT:
+- Do NOT leak real keys.
+- Do NOT import env.ts in client components.
+
+✅ Acceptance:
+- Running app with missing vars throws clear error.
+- .env.example synced with code usage.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Prevents misconfig/deploy surprises.
+* **What you’ll see:** zod validation error if a key missing.
+* **Why it matters:** Safer onboarding & reproducible builds.
+
+---
+
+### 🚦 Prompt 38 — Ops: Healthcheck & Cron Stub
+
+```
+Create app/api/health/route.ts:
+- GET returns {status:'ok', time: Date.now()} with 200.
+- No auth required.
+
+Create app/api/cron/sitemap/route.ts:
+- Stub handler: calls generateSitemap() (to be implemented).
+- Guard with secret header X-CRON-KEY = process.env.CRON_KEY.
+
+⚠️ DO NOT:
+- Do NOT expose cron publicly; require secret header.
+- Do NOT put heavy logic inline; just stub.
+
+✅ Acceptance:
+- /api/health responds OK.
+- /api/cron/sitemap requires header, returns 200 when set.
+```
+
+**Teaching (brief):**
+
+* **Effect:** Baseline health & cron infra.
+* **What you’ll see:** Simple API routes.
+* **Why it matters:** Readiness checks + safe scheduled jobs.
+
+---
+
+# ✅ Phase 6 Exit Criteria
+
+* **Unit + E2E tests** exist and pass.
+* **GitHub CI** blocks failing PRs.
+* **.env.example** synced + validated at runtime.
+* **Healthcheck + cron** routes in place.
+* Project now “deployment-safe” with full blog lifecycle + guardrails.
+
+---
+
+👉 Question for you:
+Do you want me to also generate a **Phase 7 (Optional Add-ons)** pack (analytics, comments, content calendar) to close parity with WordPress, or do we freeze scope here and polish testing?
