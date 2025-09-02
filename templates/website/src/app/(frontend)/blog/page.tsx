@@ -1,16 +1,19 @@
 import React from 'react'
 import Link from 'next/link'
-import { Search, Calendar, Clock, User, ArrowRight, TrendingUp, BookOpen } from 'lucide-react'
+import { Search, Calendar, Clock, User, ArrowRight, TrendingUp, BookOpen, Tag } from 'lucide-react'
 import { getFeaturedPosts, getRecentPosts, transformPayloadPost } from '@/lib/payload/posts-api'
+import { getPopularTags } from '@/lib/api/tags'
 import Navbar from '@/components/growrix/Navbar'
 import Footer from '@/components/growrix/Footer'
 import BlogSearchClient from '@/components/blog/BlogSearchClient'
+import { TagCloud } from '@/components/TagCloud'
 
 const BlogHomepage = async () => {
   // Fetch data from Payload CMS
-  const [featuredPostsData, recentPostsData] = await Promise.all([
+  const [featuredPostsData, recentPostsData, popularTags] = await Promise.all([
     getFeaturedPosts(),
     getRecentPosts(6),
+    getPopularTags(15),
   ])
 
   // Transform Payload posts to frontend format
@@ -203,6 +206,36 @@ const BlogHomepage = async () => {
           )}
         </div>
       </section>
+
+      {/* Popular Tags */}
+      {popularTags.length > 0 && (
+        <section className="py-16 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <Tag className="w-6 h-6 text-[#9C6BFF]" />
+                <h2 className="text-3xl font-bold font-['Space_Grotesk']">Popular Tags</h2>
+              </div>
+              <Link
+                href="/blog/tags"
+                className="flex items-center gap-2 text-[#9C6BFF] hover:text-white transition-colors"
+              >
+                View All Tags <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="bg-[#181818] rounded-lg p-6">
+              <TagCloud
+                tags={popularTags}
+                maxTags={15}
+                showCounts={true}
+                variant="outline"
+                className="justify-center"
+              />
+            </div>
+          </div>
+        </section>
+      )}
 
       <Footer />
     </div>

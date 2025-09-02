@@ -26,6 +26,12 @@ export interface PayloadPost {
     title: string
     slug: string
   }>
+  tags: Array<{
+    id: string
+    name: string
+    slug: string
+    color?: string
+  }>
   publishedAt?: string
   createdAt: string
   updatedAt: string
@@ -282,7 +288,7 @@ export function transformPayloadPost(post: PayloadPost): {
     },
     publishedAt: post.publishedAt || post.createdAt,
     categories: post.categories?.map((cat) => cat.title) || [],
-    tags: [], // Add if you implement tags
+    tags: post.tags?.map((tag) => tag.name) || [],
     readingTime: calculateReadingTime(post.content),
     status: post._status,
   }

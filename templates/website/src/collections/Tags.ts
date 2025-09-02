@@ -4,8 +4,8 @@ import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
 import { slugField } from '@/fields/slug'
 
-export const Categories: CollectionConfig = {
-  slug: 'categories',
+export const Tags: CollectionConfig = {
+  slug: 'tags',
   access: {
     create: authenticated,
     delete: authenticated,
@@ -13,11 +13,11 @@ export const Categories: CollectionConfig = {
     update: authenticated,
   },
   admin: {
-    useAsTitle: 'title',
+    useAsTitle: 'name',
   },
   fields: [
     {
-      name: 'title',
+      name: 'name',
       type: 'text',
       required: true,
     },
@@ -25,24 +25,7 @@ export const Categories: CollectionConfig = {
       name: 'description',
       type: 'textarea',
       admin: {
-        description: 'A brief description of this category',
-      },
-    },
-    {
-      name: 'icon',
-      type: 'select',
-      options: [
-        { label: 'Technology', value: 'tech' },
-        { label: 'Business', value: 'business' },
-        { label: 'Design', value: 'design' },
-        { label: 'Marketing', value: 'marketing' },
-        { label: 'Development', value: 'development' },
-        { label: 'News', value: 'news' },
-        { label: 'Tutorial', value: 'tutorial' },
-        { label: 'Review', value: 'review' },
-      ],
-      admin: {
-        description: 'Icon to represent this category',
+        description: 'A brief description of this tag',
       },
     },
     {
@@ -57,18 +40,12 @@ export const Categories: CollectionConfig = {
         { label: 'Pink', value: 'pink' },
         { label: 'Gray', value: 'gray' },
         { label: 'Indigo', value: 'indigo' },
+        { label: 'Yellow', value: 'yellow' },
+        { label: 'Teal', value: 'teal' },
       ],
       defaultValue: 'blue',
       admin: {
-        description: 'Color theme for this category',
-      },
-    },
-    {
-      name: 'parent',
-      type: 'relationship',
-      relationTo: 'categories',
-      admin: {
-        description: 'Parent category for hierarchical organization',
+        description: 'Color theme for this tag',
       },
     },
     {
@@ -76,7 +53,7 @@ export const Categories: CollectionConfig = {
       type: 'checkbox',
       defaultValue: false,
       admin: {
-        description: 'Feature this category on the homepage',
+        description: 'Feature this tag in tag clouds and homepage',
       },
     },
     {
@@ -101,15 +78,4 @@ export const Categories: CollectionConfig = {
     },
     ...slugField(),
   ],
-  hooks: {
-    beforeChange: [
-      ({ data }) => {
-        // Prevent circular parent relationships
-        if (data.parent && data.parent === data.id) {
-          delete data.parent
-        }
-        return data
-      },
-    ],
-  },
 }
