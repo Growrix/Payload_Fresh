@@ -6,21 +6,16 @@ import {
   Clock,
   User,
   ArrowLeft,
-  Share2,
   BookOpen,
   Tag,
   ChevronRight,
-  Facebook,
-  Twitter,
-  Linkedin,
   MessageCircle,
-  Mail,
-  Copy,
 } from 'lucide-react'
 import { getPostBySlug, getRecentPosts, transformPayloadPost } from '@/lib/payload/posts-api'
 import Navbar from '@/components/growrix/Navbar'
 import Footer from '@/components/growrix/Footer'
 import CommentsList from '@/components/CommentsList'
+import ShareButtons from '@/components/ShareButtons'
 import { Metadata } from 'next'
 
 interface BlogPostProps {
@@ -227,27 +222,11 @@ const BlogPost = async ({ params }: BlogPostProps) => {
 
             {/* Share Section */}
             <div className="border-t border-gray-800 pt-8 mb-12">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-[#9C6BFF]" />
-                Share this article
-              </h3>
-              <div className="flex gap-3">
-                <button className="p-3 bg-[#1A1A1A] rounded-lg hover:bg-[#333] transition-colors">
-                  <Twitter className="w-5 h-5" />
-                </button>
-                <button className="p-3 bg-[#1A1A1A] rounded-lg hover:bg-[#333] transition-colors">
-                  <Facebook className="w-5 h-5" />
-                </button>
-                <button className="p-3 bg-[#1A1A1A] rounded-lg hover:bg-[#333] transition-colors">
-                  <Linkedin className="w-5 h-5" />
-                </button>
-                <button className="p-3 bg-[#1A1A1A] rounded-lg hover:bg-[#333] transition-colors">
-                  <Mail className="w-5 h-5" />
-                </button>
-                <button className="p-3 bg-[#1A1A1A] rounded-lg hover:bg-[#333] transition-colors">
-                  <Copy className="w-5 h-5" />
-                </button>
-              </div>
+              <ShareButtons
+                title={post.title}
+                url={`/blog/${post.slug}`}
+                excerpt={post.excerpt || ''}
+              />
             </div>
           </div>
         </article>
