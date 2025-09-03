@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comments API Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #1a1a1a;
+        color: white;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .result {
+        background: #2a2a2a;
+        padding: 20px;
+        margin: 10px 0;
+        border-radius: 8px;
+      }
+      .error {
+        background: #4a1a1a;
+        border: 1px solid #ff4444;
+      }
+      .success {
+        background: #1a4a1a;
+        border: 1px solid #44ff44;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      button {
+        background: #9c6bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #8b5cf6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔍 Comments API Test</h1>
+
+      <div class="result">
+        <h3>Test Configuration</h3>
+        <p><strong>API URL:</strong> http://localhost:3002/api/comments</p>
+        <p><strong>Post ID:</strong> 68b6a8b314398e2314af6774</p>
+        <p><strong>Blog Post:</strong> building-a-demo-blog-post-in-payload-step-by-step</p>
+      </div>
+
+      <button onclick="testAPI()">🚀 Test Comments API</button>
+      <button onclick="testCreateComment()">📝 Test Create Comment</button>
+      <button onclick="clearResults()">🗑️ Clear Results</button>
+
+      <div id="results"></div>
+    </div>
+
+    <script>
+              const postId = '68b6a8b314398e2314af6774';
+              const apiUrl = 'http://localhost:3002/api/comments';
+
+              function addResult(title, content, type = 'result') {
+                  const results = document.getElementById('results');
+                  const div = document.createElement('div');
+                  div.className = `result ${type}`;
+                  div.innerHTML = `<h3>${title}</h3><pre>${content}</pre>`;
+                  results.appendChild(div);
+              }
+
+              function clearResults() {
+                  document.getElementById('results').innerHTML = '';
+              }
+
+              async function testAPI() {
+                  try {
+                      addResult('📥 Fetching Comments...', 'Making API request...');
+
+                      const response = await fetch(`${apiUrl}?postId=${postId}`);
+
+                      addResult('📊 Response Status', `Status: ${response.status} ${response.statusText}`);
+
+                      if (!response.ok) {
+                          const errorText = await response.text();
+                          addResult('❌ API Error', errorText, 'error');
+                          return;
+                      }
+
+                      const data = await response.json();
+                      addResult('✅ API Response', JSON.stringify(data, null, 2), 'success');
+
+                      // Analyze the response
+                      if (data.comments && Array.isArray(data.comments)) {
+                          addResult('📈 Comments Analysis', `
+      Total comments returned: ${data.comments.length}
+
+      ${data.comments.length === 0 ?
+          '⚠️ No comments found. This could mean:
+          - No comments exist for this post
+          - Comments exist but are not approved
+          - Wrong post ID
+          - Database connection issues' :
+          data.comments.map((comment, i) => `
+      Comment ${i + 1}:
+        - Status: ${comment.status}
+        - Author: ${comment.author?.name || 'Unknown'}
+        - Created: ${comment.createdAt}
+        - Has Content: ${comment.content ? 'Yes' : 'No'}
+        - Replies: ${comment.replies?.length || 0}`).join('\n')
+      }`, data.comments.length > 0 ? 'success' : 'error');
+                      } else {
+                          addResult('❌ Invalid Response', 'Response does not contain comments array', 'error');
+                      }
+
+                  } catch (error) {
+                      addResult('❌ Network Error', `Error: ${error.message}
+
+      This usually means:
+      - The dev server is not running
+      - Wrong port number
+      - Network connectivity issues`, 'error');
+                  }
+              }
+
+              async function testCreateComment() {
+                  try {
+                      addResult('📝 Testing Comment Creation...', 'Creating test comment...');
+
+                      const commentData = {
+                          postId: postId,
+                          content: 'This is a test comment created at ' + new Date().toISOString(),
+                          authorName: 'Test User',
+                          authorEmail: 'test@example.com',
+                          authorWebsite: 'https://example.com'
+                      };
+
+                      const response = await fetch(apiUrl, {
+                          method: 'POST',
+                          headers: {
+                              'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify(commentData)
+                      });
+
+                      addResult('📊 Create Response Status', `Status: ${response.status} ${response.statusText}`);
+
+                      if (!response.ok) {
+                          const errorText = await response.text();
+                          addResult('❌ Create Error', errorText, 'error');
+                          return;
+                      }
+
+                      const result = await response.json();
+                      addResult('✅ Comment Created', JSON.stringify(result, null, 2), 'success');
+
+                      // Automatically test fetching after creating
+                      setTimeout(() => {
+                          addResult('🔄 Fetching updated comments...', 'Checking if new comment appears...');
+                          testAPI();
+                      }, 1000);
+
+                  } catch (error) {
+                      addResult('❌ Create Error', `Error: ${error.message}`, 'error');
+                  }
+              }
+
+              // Auto-run test on page load
+              document.addEventListener('DOMContentLoaded', function() {
+                  setTimeout(testAPI, 500);
+              });
+    </script>
+  </body>
+</html>

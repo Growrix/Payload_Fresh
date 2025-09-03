@@ -36,6 +36,7 @@ export interface PayloadPost {
   createdAt: string
   updatedAt: string
   _status: 'draft' | 'published'
+  allowComments?: boolean
   meta?: {
     title?: string
     description?: string
@@ -273,6 +274,7 @@ export function transformPayloadPost(post: PayloadPost): {
   tags: string[]
   readingTime: number
   status: 'published' | 'draft'
+  allowComments: boolean
 } {
   return {
     id: post.id,
@@ -291,5 +293,6 @@ export function transformPayloadPost(post: PayloadPost): {
     tags: post.tags?.map((tag) => tag.name) || [],
     readingTime: calculateReadingTime(post.content),
     status: post._status,
+    allowComments: post.allowComments ?? true, // Default to true if not set
   }
 }

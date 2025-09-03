@@ -235,6 +235,7 @@ export interface Post {
   relatedPosts?: (string | Post)[] | null;
   categories?: (string | Category)[] | null;
   tags?: (string | Tag)[] | null;
+  allowComments?: boolean | null;
   meta?: {
     title?: string | null;
     /**
@@ -413,6 +414,43 @@ export interface User {
       }[]
     | null;
   password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: string;
+  post: string | Post;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  author: {
+    name: string;
+    email: string;
+    website?: string | null;
+    user?: (string | null) | User;
+  };
+  status: 'pending' | 'approved' | 'spam' | 'trash';
+  parentComment?: (string | null) | Comment;
+  metadata?: {
+    ipAddress?: string | null;
+    userAgent?: string | null;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

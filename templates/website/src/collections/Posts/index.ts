@@ -141,6 +141,15 @@ export const Posts: CollectionConfig<'posts'> = {
               hasMany: true,
               relationTo: 'tags',
             },
+            {
+              name: 'allowComments',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: {
+                position: 'sidebar',
+                description: 'Allow comments on this post',
+              },
+            },
           ],
           label: 'Meta',
         },
