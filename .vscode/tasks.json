@@ -1,0 +1,85 @@
+﻿{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Safe File Create",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "Import-Module '${workspaceFolder}\\SafeFileOps.psm1'; New-SafeFile -Path '${input:filePath}' -Content '${input:fileContent}'"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Safe File Update",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "Import-Module '${workspaceFolder}\\SafeFileOps.psm1'; Update-SafeFile -Path '${input:filePath}' -OldValue '${input:oldValue}' -NewValue '${input:newValue}'"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Stop Dev Server",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "Import-Module '${workspaceFolder}\\SafeFileOps.psm1'; Stop-DevServer"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "filePath",
+      "description": "File path (relative to workspace root)",
+      "default": "templates/website/src/",
+      "type": "promptString"
+    },
+    {
+      "id": "fileContent",
+      "description": "File content",
+      "default": "// New file content",
+      "type": "promptString"
+    },
+    {
+      "id": "oldValue",
+      "description": "Text to replace",
+      "default": "",
+      "type": "promptString"
+    },
+    {
+      "id": "newValue",
+      "description": "Replacement text",
+      "default": "",
+      "type": "promptString"
+    }
+  ]
+}

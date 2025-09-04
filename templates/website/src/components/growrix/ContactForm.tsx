@@ -1,8 +1,10 @@
-'use client'
+﻿'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { validateContactForm, type ContactFormData } from '@/lib/contact-validation'
+import FileUpload from './FileUpload'
+import RecaptchaComponent, { type RecaptchaRef } from './RecaptchaComponent'
 
 interface FormErrors {
   [key: string]: string
@@ -17,12 +19,14 @@ export default function ContactForm() {
     budget: '',
     message: '',
     attachments: [],
+    recaptchaToken: '',
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState('')
   const [serverError, setServerError] = useState('')
+  const recaptchaRef = useRef<RecaptchaRef>(null)
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -40,11 +44,47 @@ export default function ContactForm() {
     }
   }
 
+  const handleFilesChange = (fileIds: string[]) => {
+    console.log('ContactForm: Received file IDs from FileUpload:', fileIds)
+    setForm((prev) => ({ ...prev, attachments: fileIds }))
+  }
+
+  const handleRecaptchaChange = (token: string | null) => {
+    setForm((prev) => ({ ...prev, recaptchaToken: token || '' }))
+
+    // Clear recaptcha error if it exists
+    if (errors.recaptchaToken) {
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors.recaptchaToken
+        return newErrors
+      })
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setServerError('')
     setSuccess('')
+
+    // Get reCAPTCHA token if not already set
+    if (!form.recaptchaToken && recaptchaRef.current) {
+      try {
+        const token = await recaptchaRef.current.execute()
+        if (token) {
+          setForm((prev) => ({ ...prev, recaptchaToken: token }))
+        } else {
+          setErrors({ recaptchaToken: 'Please complete the reCAPTCHA verification' })
+          setIsSubmitting(false)
+          return
+        }
+      } catch (error) {
+        setErrors({ recaptchaToken: 'reCAPTCHA verification failed' })
+        setIsSubmitting(false)
+        return
+      }
+    }
 
     // Validate form
     const validation = validateContactForm(form)
@@ -55,6 +95,7 @@ export default function ContactForm() {
     }
 
     try {
+      console.log('ContactForm: Submitting form with data:', form)
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
@@ -66,7 +107,7 @@ export default function ContactForm() {
       const result = await response.json()
 
       if (result.success) {
-        setSuccess('Thanks — your message was sent successfully! We will get back to you soon.')
+        setSuccess('Thanks  your message was sent successfully! We will get back to you soon.')
         setForm({
           name: '',
           email: '',
@@ -75,8 +116,14 @@ export default function ContactForm() {
           budget: '',
           message: '',
           attachments: [],
+          recaptchaToken: '',
         })
         setErrors({})
+
+        // Reset reCAPTCHA
+        if (recaptchaRef.current) {
+          recaptchaRef.current.reset()
+        }
 
         // Auto-hide success message after 10 seconds
         setTimeout(() => setSuccess(''), 10000)
@@ -231,16 +278,32 @@ export default function ContactForm() {
 
         <label className="flex flex-col md:col-span-2">
           <span className="text-sm text-[#B0B0B0]">Upload Files</span>
-          <div className="mt-2 p-6 bg-[#0F0F0F] rounded-lg border-2 border-dashed border-[#222] text-center text-sm text-[#B0B0B0]">
-            Drag or click to upload files (Coming soon)
+          <div className="mt-2">
+            <FileUpload onFilesChange={handleFilesChange} maxFiles={5} maxSize={10 * 1024 * 1024} />
           </div>
-          <span className="text-xs text-[#666] mt-1">
-            Supported formats: PDF, DOC, DOCX, PNG, JPG (Max 10MB)
-          </span>
+          {errors.attachments && (
+            <span className="text-red-400 text-sm mt-1">{errors.attachments}</span>
+          )}
         </label>
       </div>
 
       <div className="mt-6 flex flex-col gap-4">
+        {/* reCAPTCHA */}
+        <div className="flex flex-col items-center">
+          <RecaptchaComponent
+            ref={recaptchaRef}
+            siteKey={
+              process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ||
+              '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+            }
+            onChange={handleRecaptchaChange}
+            theme="dark"
+          />
+          {errors.recaptchaToken && (
+            <span className="text-red-400 text-sm mt-2">{errors.recaptchaToken}</span>
+          )}
+        </div>
+
         <div className="flex items-center justify-between">
           <button
             type="submit"

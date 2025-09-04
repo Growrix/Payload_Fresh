@@ -73,6 +73,8 @@ export interface Config {
     categories: Category;
     tags: Tag;
     users: User;
+    comments: Comment;
+    'contact-submissions': ContactSubmission;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -449,6 +451,35 @@ export interface Comment {
     ipAddress?: string | null;
     userAgent?: string | null;
   } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions".
+ */
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  company?: string | null;
+  projectType: 'website' | 'mobile-app' | 'design' | 'other';
+  budget: '5k-15k' | '15k-50k' | '50k-plus';
+  message: string;
+  attachments?: (string | Media)[] | null;
+  status: 'new' | 'in-review' | 'contacted' | 'closed';
+  priority?: 'low' | 'medium' | 'high' | 'urgent' | null;
+  source?: string | null;
+  metadata?: {
+    ipAddress?: string | null;
+    userAgent?: string | null;
+    referrer?: string | null;
+    utmSource?: string | null;
+    utmMedium?: string | null;
+    utmCampaign?: string | null;
+  } | null;
+  submittedAt?: string | null;
+  adminNotes?: string | null;
   updatedAt: string;
   createdAt: string;
 }

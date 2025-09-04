@@ -353,7 +353,7 @@ describe('Blog API Functions', () => {
         slug: 'test-post',
         excerpt: 'Test excerpt',
         content: { root: { children: [] } },
-        featuredImage: {
+        heroImage: {
           id: 'img1',
           url: '/test.jpg',
           alt: 'Test image',
@@ -362,10 +362,12 @@ describe('Blog API Functions', () => {
         },
         authors: [{ id: 'auth1', name: 'Test Author', email: 'test@example.com' }],
         categories: [{ id: 'cat1', title: 'Test Category', slug: 'test-category' }],
+        tags: [],
         publishedAt: '2025-01-01T00:00:00Z',
         createdAt: '2025-01-01T00:00:00Z',
         updatedAt: '2025-01-01T00:00:00Z',
         _status: 'published' as const,
+        allowComments: true,
       }
 
       const result = transformPayloadPost(payloadPost)
@@ -387,6 +389,7 @@ describe('Blog API Functions', () => {
         tags: [],
         readingTime: expect.any(Number),
         status: 'published',
+        allowComments: true,
       })
     })
 
@@ -399,6 +402,7 @@ describe('Blog API Functions', () => {
         content: { root: { children: [] } },
         authors: [],
         categories: [],
+        tags: [],
         publishedAt: '2025-01-01T00:00:00Z',
         createdAt: '2025-01-01T00:00:00Z',
         updatedAt: '2025-01-01T00:00:00Z',
