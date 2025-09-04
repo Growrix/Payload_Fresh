@@ -11,7 +11,15 @@ export const ContactSubmissions: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'email', 'company', 'projectType', 'status', 'submittedAt'],
+    defaultColumns: [
+      'name',
+      'email',
+      'company',
+      'projectType',
+      'status',
+      'attachments',
+      'submittedAt',
+    ],
     group: 'Contact',
     description: 'Manage contact form submissions from website',
     listSearchableFields: ['name', 'email', 'company', 'message'],
@@ -109,9 +117,24 @@ export const ContactSubmissions: CollectionConfig = {
       type: 'relationship',
       relationTo: 'media',
       hasMany: true,
-      admin: {
-        description: 'Files uploaded with the contact form',
-        position: 'sidebar',
+      validate: (value) => {
+        // Allow empty attachments - this is optional
+        if (!value || value === null || (Array.isArray(value) && value.length === 0)) {
+          return true
+        }
+
+        // If we have values, validate they are strings (IDs) or media objects
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            if (typeof item !== 'string' && (typeof item !== 'object' || item === null)) {
+              return 'Invalid attachment format'
+            }
+          }
+        } else {
+          return 'Attachments must be an array'
+        }
+
+        return true
       },
     },
     {
@@ -271,12 +294,9 @@ export const ContactSubmissions: CollectionConfig = {
           if (req.headers) {
             data.metadata = data.metadata || {}
             data.metadata.ipAddress =
-              req.ip ||
-              req.headers['x-forwarded-for'] ||
-              req.headers['x-real-ip'] ||
-              req.connection?.remoteAddress
-            data.metadata.userAgent = req.headers['user-agent']
-            data.metadata.referrer = req.headers.referer || req.headers.referrer
+              req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+            data.metadata.userAgent = req.headers.get('user-agent') || ''
+            data.metadata.referrer = req.headers.get('referer') || req.headers.get('referrer') || ''
           }
         }
         return data
