@@ -288,22 +288,6 @@ export default function ContactForm() {
       </div>
 
       <div className="mt-6 flex flex-col gap-4">
-        {/* reCAPTCHA */}
-        <div className="flex flex-col items-center">
-          <RecaptchaComponent
-            ref={recaptchaRef}
-            siteKey={
-              process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ||
-              '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
-            }
-            onChange={handleRecaptchaChange}
-            theme="dark"
-          />
-          {errors.recaptchaToken && (
-            <span className="text-red-400 text-sm mt-2">{errors.recaptchaToken}</span>
-          )}
-        </div>
-
         <div className="flex items-center justify-between">
           <button
             type="submit"
@@ -360,6 +344,21 @@ export default function ContactForm() {
             />
           </svg>
           Your information is secure and will only be used to contact you about your project.
+        </div>
+        {/* reCAPTCHA: placed at the end of the form, under the security text and left-aligned */}
+        <div className="mt-4 self-start w-fit">
+          <RecaptchaComponent
+            ref={recaptchaRef}
+            siteKey={
+              process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ||
+              '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+            }
+            onChange={handleRecaptchaChange}
+            theme="dark"
+          />
+          {errors.recaptchaToken && (
+            <span className="text-red-400 text-sm mt-2 block">{errors.recaptchaToken}</span>
+          )}
         </div>
       </div>
     </motion.form>

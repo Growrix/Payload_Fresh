@@ -231,6 +231,39 @@ const BlogPost = async ({ params }: BlogPostProps) => {
           </div>
         </article>
 
+        {/* Comments Section */}
+        {(() => {
+          console.log('Post object:', {
+            id: post.id,
+            allowComments: post.allowComments,
+            title: post.title,
+          })
+          return null
+        })()}
+        {post.allowComments && (
+          <section className="border-t border-gray-800 py-16">
+            <div className="container mx-auto px-4">
+              <div className="max-w-4xl mx-auto">
+                <CommentsList postId={post.id} allowComments={post.allowComments} />
+              </div>
+            </div>
+          </section>
+        )}
+        {!post.allowComments && (
+          <section className="border-t border-gray-800 py-16">
+            <div className="container mx-auto px-4">
+              <div className="max-w-4xl mx-auto">
+                <div className="bg-[#0B0B0B] rounded-xl p-8 text-center">
+                  <p className="text-gray-400">
+                    DEBUG: Comments are disabled for this post (allowComments:{' '}
+                    {String(post.allowComments)})
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
           <section className="border-t border-gray-800 py-16">
@@ -298,39 +331,6 @@ const BlogPost = async ({ params }: BlogPostProps) => {
                       </div>
                     </article>
                   ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Comments Section */}
-        {(() => {
-          console.log('Post object:', {
-            id: post.id,
-            allowComments: post.allowComments,
-            title: post.title,
-          })
-          return null
-        })()}
-        {post.allowComments && (
-          <section className="border-t border-gray-800 py-16">
-            <div className="container mx-auto px-4">
-              <div className="max-w-4xl mx-auto">
-                <CommentsList postId={post.id} allowComments={post.allowComments} />
-              </div>
-            </div>
-          </section>
-        )}
-        {!post.allowComments && (
-          <section className="border-t border-gray-800 py-16">
-            <div className="container mx-auto px-4">
-              <div className="max-w-4xl mx-auto">
-                <div className="bg-[#0B0B0B] rounded-xl p-8 text-center">
-                  <p className="text-gray-400">
-                    DEBUG: Comments are disabled for this post (allowComments:{' '}
-                    {String(post.allowComments)})
-                  </p>
                 </div>
               </div>
             </div>
