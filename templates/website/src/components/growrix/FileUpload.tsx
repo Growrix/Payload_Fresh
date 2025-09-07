@@ -191,6 +191,12 @@ export default function FileUpload({
             ? 'border-[#9C6BFF] bg-[#9C6BFF]/10'
             : 'border-[#222] hover:border-[#9C6BFF]/50'
         } ${isUploading || uploadedFiles.length >= maxFiles ? 'opacity-50 cursor-not-allowed' : ''}`}
+        onClick={(e) => {
+          // Only allow clicks on the "Click to upload" span
+          if (e.target !== e.currentTarget && !e.target.closest('[data-upload-trigger]')) {
+            e.stopPropagation()
+          }
+        }}
       >
         <input {...getInputProps()} style={{ pointerEvents: 'none' }} tabIndex={-1} aria-hidden />
         {isUploading ? (
@@ -220,6 +226,7 @@ export default function FileUpload({
                 <div>
                   <p>
                     <span
+                      data-upload-trigger
                       className="text-[#9C6BFF] hover:text-[#8A5CE8] font-medium cursor-pointer"
                       onClick={handleOpen}
                     >
@@ -257,15 +264,31 @@ export default function FileUpload({
               </div>
               <button
                 type="button"
-                onPointerDown={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-                onPointerUp={(e) => e.stopPropagation()}
-                onMouseUp={(e) => e.stopPropagation()}
+                onPointerDown={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onPointerUp={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onMouseUp={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
                 onClick={(e) => {
+                  e.preventDefault()
                   e.stopPropagation()
                   removeFile(file.id)
                 }}
+                onMouseEnter={(e) => e.stopPropagation()}
+                onMouseLeave={(e) => e.stopPropagation()}
                 className="flex-shrink-0 p-1 hover:bg-red-500/20 rounded transition-colors"
+                style={{ pointerEvents: 'auto' }}
               >
                 <svg className="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
                   <path
