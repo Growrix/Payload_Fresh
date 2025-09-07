@@ -19,7 +19,7 @@ interface UploadedFile {
 
 export default function FileUpload({
   onFilesChange,
-  maxFiles = 5,
+  maxFiles = 10,
   maxSize = 10 * 1024 * 1024,
   acceptedFileTypes = [
     'image/jpeg',
@@ -38,7 +38,14 @@ export default function FileUpload({
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (uploadedFiles.length + acceptedFiles.length > maxFiles) {
-        setError(`Maximum ${maxFiles} files allowed`)
+        const message = `Maximum ${maxFiles} files allowed. Please select fewer files.`
+        // show popup for mistaken large selection
+        try {
+          window.alert(message)
+        } catch (e) {
+          setError(message)
+        }
+        setError(message)
         return
       }
 
@@ -112,13 +119,68 @@ export default function FileUpload({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const onDropRejected = useCallback(
+    (fileRejections: any[]) => {
+      if (!fileRejections || fileRejections.length === 0) return
+
+      // If rejection is due to too many files, show the max-files message
+      const tooMany = fileRejections.some((r) =>
+        r?.errors?.some((err: any) => err?.code === 'too-many-files'),
+      )
+
+      if (tooMany) {
+        const message = `Maximum ${maxFiles} files allowed. Please select fewer files.`
+        try {
+          window.alert(message)
+        } catch (e) {
+          setError(message)
+        }
+        setError(message)
+        return
+      }
+
+      // Otherwise, aggregate other rejection reasons (size/type)
+      const msgs: string[] = []
+      fileRejections.forEach((r) => {
+        ;(r.errors || []).forEach((err: any) => {
+          if (err.code === 'file-too-large') msgs.push('One or more files exceed the maximum size')
+          else if (err.code === 'file-invalid-type')
+            msgs.push('One or more files have an invalid file type')
+          else msgs.push(err.message || 'File rejected')
+        })
+      })
+
+      const message = [...new Set(msgs)].join('; ')
+      try {
+        window.alert(message)
+      } catch (e) {
+        setError(message)
+      }
+      setError(message)
+    },
+    [maxFiles],
+  )
+
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: acceptedFileTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
     maxSize,
     maxFiles: maxFiles - uploadedFiles.length,
     disabled: isUploading || uploadedFiles.length >= maxFiles,
+    noClick: true, // we'll call open() manually to avoid duplicate file dialog on some platforms
   })
+
+  const handleOpen = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (isUploading || uploadedFiles.length >= maxFiles) return
+    try {
+      open()
+    } catch (err) {
+      // swallow - open may not be available in some environments
+      console.warn('FileUpload: open() failed', err)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -130,7 +192,7 @@ export default function FileUpload({
             : 'border-[#222] hover:border-[#9C6BFF]/50'
         } ${isUploading || uploadedFiles.length >= maxFiles ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        <input {...getInputProps()} />
+        <input {...getInputProps()} style={{ pointerEvents: 'none' }} tabIndex={-1} aria-hidden />
         {isUploading ? (
           <div className="flex flex-col items-center gap-2">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#9C6BFF] border-t-transparent"></div>
@@ -157,7 +219,10 @@ export default function FileUpload({
               ) : (
                 <div>
                   <p>
-                    <span className="text-[#9C6BFF] hover:text-[#8A5CE8] font-medium">
+                    <span
+                      className="text-[#9C6BFF] hover:text-[#8A5CE8] font-medium cursor-pointer"
+                      onClick={handleOpen}
+                    >
                       Click to upload
                     </span>{' '}
                     or drag and drop
@@ -191,7 +256,15 @@ export default function FileUpload({
                 </div>
               </div>
               <button
-                onClick={() => removeFile(file.id)}
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onPointerUp={(e) => e.stopPropagation()}
+                onMouseUp={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  removeFile(file.id)
+                }}
                 className="flex-shrink-0 p-1 hover:bg-red-500/20 rounded transition-colors"
               >
                 <svg className="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">

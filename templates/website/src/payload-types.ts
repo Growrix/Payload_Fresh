@@ -72,9 +72,9 @@ export interface Config {
     media: Media;
     categories: Category;
     tags: Tag;
-    users: User;
     comments: Comment;
     'contact-submissions': ContactSubmission;
+    users: User;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -91,6 +91,8 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
+    'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -237,6 +239,9 @@ export interface Post {
   relatedPosts?: (string | Post)[] | null;
   categories?: (string | Category)[] | null;
   tags?: (string | Tag)[] | null;
+  /**
+   * Allow comments on this post
+   */
   allowComments?: boolean | null;
   meta?: {
     title?: string | null;
@@ -359,9 +364,38 @@ export interface Media {
 export interface Category {
   id: string;
   title: string;
+  /**
+   * A brief description of this category
+   */
+  description?: string | null;
+  /**
+   * Icon to represent this category
+   */
+  icon?: ('tech' | 'business' | 'design' | 'marketing' | 'development' | 'news' | 'tutorial' | 'review') | null;
+  /**
+   * Color theme for this category
+   */
+  color?: ('blue' | 'green' | 'purple' | 'red' | 'orange' | 'pink' | 'gray' | 'indigo') | null;
+  /**
+   * Parent category for hierarchical organization
+   */
+  parent?: (string | null) | Category;
+  /**
+   * Feature this category on the homepage
+   */
+  featured?: boolean | null;
+  seo?: {
+    /**
+     * Custom meta title for SEO (optional)
+     */
+    metaTitle?: string | null;
+    /**
+     * Custom meta description for SEO (optional)
+     */
+    metaDescription?: string | null;
+  };
   slug?: string | null;
   slugLock?: boolean | null;
-  parent?: (string | null) | Category;
   breadcrumbs?:
     | {
         doc?: (string | null) | Category;
@@ -380,12 +414,27 @@ export interface Category {
 export interface Tag {
   id: string;
   name: string;
+  /**
+   * A brief description of this tag
+   */
   description?: string | null;
+  /**
+   * Color theme for this tag
+   */
   color?: ('blue' | 'green' | 'purple' | 'red' | 'orange' | 'pink' | 'gray' | 'indigo' | 'yellow' | 'teal') | null;
+  /**
+   * Feature this tag in tag clouds and homepage
+   */
   featured?: boolean | null;
   seo?: {
-    title?: string | null;
-    description?: string | null;
+    /**
+     * Custom meta title for SEO (optional)
+     */
+    metaTitle?: string | null;
+    /**
+     * Custom meta description for SEO (optional)
+     */
+    metaDescription?: string | null;
   };
   slug?: string | null;
   slugLock?: boolean | null;
@@ -416,72 +465,6 @@ export interface User {
       }[]
     | null;
   password?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "comments".
- */
-export interface Comment {
-  id: string;
-  post: string | Post;
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  author: {
-    name: string;
-    email: string;
-    website?: string | null;
-    user?: (string | null) | User;
-  };
-  status: 'pending' | 'approved' | 'spam' | 'trash';
-  parentComment?: (string | null) | Comment;
-  metadata?: {
-    ipAddress?: string | null;
-    userAgent?: string | null;
-  } | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "contact-submissions".
- */
-export interface ContactSubmission {
-  id: string;
-  name: string;
-  email: string;
-  company?: string | null;
-  projectType: 'website' | 'mobile-app' | 'design' | 'other';
-  budget: '5k-15k' | '15k-50k' | '50k-plus';
-  message: string;
-  attachments?: (string | Media)[] | null;
-  status: 'new' | 'in-review' | 'contacted' | 'closed';
-  priority?: 'low' | 'medium' | 'high' | 'urgent' | null;
-  source?: string | null;
-  metadata?: {
-    ipAddress?: string | null;
-    userAgent?: string | null;
-    referrer?: string | null;
-    utmSource?: string | null;
-    utmMedium?: string | null;
-    utmCampaign?: string | null;
-  } | null;
-  submittedAt?: string | null;
-  adminNotes?: string | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -827,6 +810,158 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: string;
+  post: string | Post;
+  /**
+   * The comment content
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  author: {
+    /**
+     * Commenter name
+     */
+    name: string;
+    /**
+     * Commenter email (not displayed publicly)
+     */
+    email: string;
+    /**
+     * Optional website URL
+     */
+    website?: string | null;
+    /**
+     * Linked user account (if logged in)
+     */
+    user?: (string | null) | User;
+  };
+  /**
+   * Comment moderation status
+   */
+  status: 'pending' | 'approved' | 'spam' | 'trash';
+  /**
+   * Parent comment for threading (replies)
+   */
+  parentComment?: (string | null) | Comment;
+  /**
+   * Technical metadata for moderation
+   */
+  metadata?: {
+    /**
+     * IP address for spam detection
+     */
+    ipAddress?: string | null;
+    /**
+     * Browser user agent
+     */
+    userAgent?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Manage contact form submissions from website
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions".
+ */
+export interface ContactSubmission {
+  id: string;
+  /**
+   * Full name of the person submitting the form
+   */
+  name: string;
+  /**
+   * Email address for contact
+   */
+  email: string;
+  /**
+   * Company or organization name (optional)
+   */
+  company?: string | null;
+  /**
+   * Type of project they are inquiring about
+   */
+  projectType: 'website' | 'mobile-app' | 'design' | 'other';
+  /**
+   * Budget range for the project
+   */
+  budget: '5k-15k' | '15k-50k' | '50k-plus';
+  /**
+   * Detailed message about their project requirements
+   */
+  message: string;
+  attachments?: (string | Media)[] | null;
+  /**
+   * Current status of the contact submission
+   */
+  status: 'new' | 'in-review' | 'contacted' | 'closed';
+  /**
+   * Priority level for follow-up
+   */
+  priority?: ('low' | 'medium' | 'high' | 'urgent') | null;
+  /**
+   * Source of the contact submission
+   */
+  source?: string | null;
+  /**
+   * Technical metadata for tracking and security
+   */
+  metadata?: {
+    /**
+     * IP address of the submitter
+     */
+    ipAddress?: string | null;
+    /**
+     * Browser user agent string
+     */
+    userAgent?: string | null;
+    /**
+     * Page referrer URL
+     */
+    referrer?: string | null;
+    /**
+     * UTM source parameter
+     */
+    utmSource?: string | null;
+    /**
+     * UTM medium parameter
+     */
+    utmMedium?: string | null;
+    /**
+     * UTM campaign parameter
+     */
+    utmCampaign?: string | null;
+  };
+  /**
+   * Date and time of submission
+   */
+  submittedAt?: string | null;
+  /**
+   * Internal notes for admins (not visible to submitter)
+   */
+  adminNotes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1013,6 +1148,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: string | Category;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: string | Tag;
+      } | null)
+    | ({
+        relationTo: 'comments';
+        value: string | Comment;
+      } | null)
+    | ({
+        relationTo: 'contact-submissions';
+        value: string | ContactSubmission;
       } | null)
     | ({
         relationTo: 'users';
@@ -1225,6 +1372,8 @@ export interface PostsSelect<T extends boolean = true> {
   content?: T;
   relatedPosts?: T;
   categories?: T;
+  tags?: T;
+  allowComments?: T;
   meta?:
     | T
     | {
@@ -1345,9 +1494,19 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
+  description?: T;
+  icon?: T;
+  color?: T;
+  parent?: T;
+  featured?: T;
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+      };
   slug?: T;
   slugLock?: T;
-  parent?: T;
   breadcrumbs?:
     | T
     | {
@@ -1371,11 +1530,67 @@ export interface TagsSelect<T extends boolean = true> {
   seo?:
     | T
     | {
-        title?: T;
-        description?: T;
+        metaTitle?: T;
+        metaDescription?: T;
       };
   slug?: T;
   slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  post?: T;
+  content?: T;
+  author?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        website?: T;
+        user?: T;
+      };
+  status?: T;
+  parentComment?: T;
+  metadata?:
+    | T
+    | {
+        ipAddress?: T;
+        userAgent?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions_select".
+ */
+export interface ContactSubmissionsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  company?: T;
+  projectType?: T;
+  budget?: T;
+  message?: T;
+  attachments?: T;
+  status?: T;
+  priority?: T;
+  source?: T;
+  metadata?:
+    | T
+    | {
+        ipAddress?: T;
+        userAgent?: T;
+        referrer?: T;
+        utmSource?: T;
+        utmMedium?: T;
+        utmCampaign?: T;
+      };
+  submittedAt?: T;
+  adminNotes?: T;
   updatedAt?: T;
   createdAt?: T;
 }

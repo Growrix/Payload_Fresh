@@ -279,7 +279,11 @@ export default function ContactForm() {
         <label className="flex flex-col md:col-span-2">
           <span className="text-sm text-[#B0B0B0]">Upload Files</span>
           <div className="mt-2">
-            <FileUpload onFilesChange={handleFilesChange} maxFiles={5} maxSize={10 * 1024 * 1024} />
+            <FileUpload
+              onFilesChange={handleFilesChange}
+              maxFiles={10}
+              maxSize={10 * 1024 * 1024}
+            />
           </div>
           {errors.attachments && (
             <span className="text-red-400 text-sm mt-1">{errors.attachments}</span>
@@ -288,22 +292,6 @@ export default function ContactForm() {
       </div>
 
       <div className="mt-6 flex flex-col gap-4">
-        {/* reCAPTCHA */}
-        <div className="flex flex-col items-center">
-          <RecaptchaComponent
-            ref={recaptchaRef}
-            siteKey={
-              process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ||
-              '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
-            }
-            onChange={handleRecaptchaChange}
-            theme="dark"
-          />
-          {errors.recaptchaToken && (
-            <span className="text-red-400 text-sm mt-2">{errors.recaptchaToken}</span>
-          )}
-        </div>
-
         <div className="flex items-center justify-between">
           <button
             type="submit"
@@ -361,6 +349,21 @@ export default function ContactForm() {
           </svg>
           Your information is secure and will only be used to contact you about your project.
         </div>
+      </div>
+
+      {/* reCAPTCHA at the very bottom */}
+      <div className="mt-6 flex flex-col items-start">
+        <RecaptchaComponent
+          ref={recaptchaRef}
+          siteKey={
+            process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+          }
+          onChange={handleRecaptchaChange}
+          theme="dark"
+        />
+        {errors.recaptchaToken && (
+          <span className="text-red-400 text-sm mt-2">{errors.recaptchaToken}</span>
+        )}
       </div>
     </motion.form>
   )
