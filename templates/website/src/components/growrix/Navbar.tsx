@@ -2,11 +2,14 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 
 export default function Navbar() {
+  const router = useRouter()
   const [isScrolled, setIsScrolled] = useState(false)
   const [showHeader, setShowHeader] = useState(true)
+  const [user, setUser] = useState<any>(null)
   const lastScrollY = useRef(0)
 
   useEffect(() => {
@@ -19,6 +22,27 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  useEffect(() => {
+    // Check if user is logged in
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      setUser(JSON.parse(userData))
+    }
+  }, [])
+
+  // If user is logged in, redirect to dashboard
+  useEffect(() => {
+    if (user && window.location.pathname === '/') {
+      router.push('/dashboard')
+    }
+  }, [user, router])
+
+  const handleLogout = () => {
+    localStorage.removeItem('user')
+    setUser(null)
+    router.push('/')
+  }
 
   return (
     <nav
@@ -67,24 +91,50 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center space-x-3">
-            <Link href="/signin">
-              <motion.a
-                whileHover={{ scale: 1.05, boxShadow: '0 0 20px #9C6BFF40' }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-[#9C6BFF] text-white px-6 py-2 rounded-lg font-['Inter'] font-medium inline-block"
-              >
-                Signin
-              </motion.a>
-            </Link>
-            <Link href="/signup">
-              <motion.a
-                whileHover={{ scale: 1.05, boxShadow: '0 0 20px #9C6BFF40' }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-transparent text-[#9C6BFF] border border-[#9C6BFF] hover:bg-[#9C6BFF] hover:text-white px-6 py-2 rounded-lg font-['Inter'] font-medium inline-block"
-              >
-                Signup
-              </motion.a>
-            </Link>
+            {user ? (
+              // Logged in user menu
+              <>
+                <Link href="/dashboard">
+                  <motion.a
+                    whileHover={{ scale: 1.05, boxShadow: '0 0 20px #9C6BFF40' }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-[#9C6BFF] text-white px-6 py-2 rounded-lg font-['Inter'] font-medium inline-block"
+                  >
+                    Dashboard
+                  </motion.a>
+                </Link>
+                <motion.button
+                  onClick={handleLogout}
+                  whileHover={{ scale: 1.05, boxShadow: '0 0 20px #9C6BFF40' }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-transparent text-[#9C6BFF] border border-[#9C6BFF] hover:bg-[#9C6BFF] hover:text-white px-6 py-2 rounded-lg font-['Inter'] font-medium"
+                >
+                  Logout
+                </motion.button>
+              </>
+            ) : (
+              // Guest user buttons
+              <>
+                <Link href="/signin">
+                  <motion.a
+                    whileHover={{ scale: 1.05, boxShadow: '0 0 20px #9C6BFF40' }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-[#9C6BFF] text-white px-6 py-2 rounded-lg font-['Inter'] font-medium inline-block"
+                  >
+                    Signin
+                  </motion.a>
+                </Link>
+                <Link href="/signup">
+                  <motion.a
+                    whileHover={{ scale: 1.05, boxShadow: '0 0 20px #9C6BFF40' }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-transparent text-[#9C6BFF] border border-[#9C6BFF] hover:bg-[#9C6BFF] hover:text-white px-6 py-2 rounded-lg font-['Inter'] font-medium inline-block"
+                  >
+                    Signup
+                  </motion.a>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
