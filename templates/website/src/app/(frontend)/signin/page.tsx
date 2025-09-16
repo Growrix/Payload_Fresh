@@ -170,29 +170,59 @@ export default function SigninPage() {
     setIsSubmitting(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Store user data (you'll integrate with Supabase here)
-      localStorage.setItem(
-        'user',
-        JSON.stringify({
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           email: formData.email,
-          id: Date.now(),
+          password: formData.password,
         }),
-      )
+      })
 
-      // Redirect to dashboard
-      router.push('/dashboard')
+      const data = await response.json()
+
+      if (response.ok) {
+        // Store user data
+        localStorage.setItem('user', JSON.stringify(data.user))
+
+        // Redirect to dashboard
+        router.push('/dashboard')
+      } else {
+        setErrors({ submit: data.error || 'Login failed. Please check your credentials.' })
+      }
     } catch (error) {
-      setErrors({ submit: 'Login failed. Please check your credentials.' })
+      console.error('Login error:', error)
+      setErrors({ submit: 'Network error. Please try again.' })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleSocialSignin = (provider: string) => {
-    console.log(`Signing in with ${provider}`)
+  const handleSocialSignin = async (provider: string) => {
+    try {
+      if (provider === 'google') {
+        // Check if Google OAuth is configured
+        const response = await fetch('/api/auth/providers')
+        const providers = await response.json()
+
+        if (providers.find((p: any) => p.id === 'google')) {
+          // Redirect to NextAuth Google OAuth
+          window.location.href = '/api/auth/signin/google'
+        } else {
+          alert(
+            'Google OAuth is not configured. Please set up Google OAuth credentials in the .env file. Check OAUTH_SETUP_GUIDE.md for instructions.',
+          )
+        }
+      } else if (provider === 'apple') {
+        // For now, show a message that Apple OAuth needs setup
+        alert('Apple OAuth requires additional setup. Please use Google or email signin for now.')
+      }
+    } catch (error) {
+      console.error('Social signin error:', error)
+      setErrors({ submit: 'Social signin failed. Please try again.' })
+    }
   }
 
   return (

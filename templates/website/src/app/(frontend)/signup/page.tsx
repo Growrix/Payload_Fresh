@@ -186,31 +186,60 @@ export default function SignupPage() {
     setIsSubmitting(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // Store user data (you'll integrate with Supabase here)
-      localStorage.setItem(
-        'user',
-        JSON.stringify({
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          id: Date.now(),
+          password: formData.password,
         }),
-      )
+      })
 
-      // Redirect to dashboard
-      router.push('/dashboard')
+      const data = await response.json()
+
+      if (response.ok) {
+        // Store user data
+        localStorage.setItem('user', JSON.stringify(data.user))
+
+        // Redirect to dashboard
+        router.push('/dashboard')
+      } else {
+        setErrors({ submit: data.error || 'Signup failed. Please try again.' })
+      }
     } catch (error) {
-      setErrors({ submit: 'Signup failed. Please try again.' })
+      console.error('Signup error:', error)
+      setErrors({ submit: 'Network error. Please try again.' })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleSocialSignup = (provider: string) => {
-    // Implement OAuth signup
-    console.log(`Signing up with ${provider}`)
+  const handleSocialSignup = async (provider: string) => {
+    try {
+      if (provider === 'google') {
+        // Check if Google OAuth is configured
+        const response = await fetch('/api/auth/providers')
+        const providers = await response.json()
+
+        if (providers.find((p: any) => p.id === 'google')) {
+          // Redirect to NextAuth Google OAuth
+          window.location.href = '/api/auth/signin/google'
+        } else {
+          alert(
+            'Google OAuth is not configured. Please set up Google OAuth credentials in the .env file. Check OAUTH_SETUP_GUIDE.md for instructions.',
+          )
+        }
+      } else if (provider === 'apple') {
+        // For now, show a message that Apple OAuth needs setup
+        alert('Apple OAuth requires additional setup. Please use Google or email signup for now.')
+      }
+    } catch (error) {
+      console.error('Social signup error:', error)
+      setErrors({ submit: 'Social signup failed. Please try again.' })
+    }
   }
 
   return (
