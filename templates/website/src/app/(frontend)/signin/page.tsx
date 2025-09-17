@@ -113,6 +113,7 @@ export default function SigninPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isLoginSuccess, setIsLoginSuccess] = useState(false)
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 })
   const [isTypingPassword, setIsTypingPassword] = useState(false)
 
@@ -187,8 +188,14 @@ export default function SigninPage() {
         // Store user data
         localStorage.setItem('user', JSON.stringify(data.user))
 
-        // Redirect to dashboard
-        router.push('/dashboard')
+        // Show success message briefly then redirect to homepage
+        setIsLoginSuccess(true)
+        setErrors({ submit: '' })
+
+        // Redirect to homepage after a short delay
+        setTimeout(() => {
+          router.push('/')
+        }, 1500)
       } else {
         setErrors({ submit: data.error || 'Login failed. Please check your credentials.' })
       }
@@ -432,6 +439,16 @@ export default function SigninPage() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 {errors.submit}
+              </motion.p>
+            )}
+
+            {isLoginSuccess && (
+              <motion.p
+                className="text-sm text-green-400 text-center font-['Inter']"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                ✅ Login successful! You can now access the dashboard from the header.
               </motion.p>
             )}
           </motion.form>

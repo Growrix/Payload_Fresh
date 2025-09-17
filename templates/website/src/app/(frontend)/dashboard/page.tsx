@@ -27,13 +27,29 @@ export default function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
-    // Check if user is logged in
-    const userData = localStorage.getItem('user')
-    if (!userData) {
-      router.push('/')
-      return
+    // Check if user is logged in with a small delay to ensure localStorage is ready
+    const checkAuth = () => {
+      const userData = localStorage.getItem('user')
+
+      if (!userData) {
+        router.push('/')
+        return
+      }
+
+      try {
+        const parsedUser = JSON.parse(userData)
+        setUser(parsedUser)
+      } catch (error) {
+        console.error('Error parsing user data:', error)
+        localStorage.removeItem('user') // Clear corrupted data
+        router.push('/')
+      }
     }
-    setUser(JSON.parse(userData))
+
+    // Add a small delay to ensure localStorage is available
+    const timeoutId = setTimeout(checkAuth, 100)
+
+    return () => clearTimeout(timeoutId)
   }, [router])
 
   const handleLogout = () => {
@@ -107,11 +123,13 @@ export default function DashboardPage() {
           {/* User Profile */}
           <div className="mb-8 p-4 bg-[#2A2A2A] rounded-lg">
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#9C6BFF] to-[#7C4DFF] rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#9C6BFF] to-[#7C4DFF] rounded-full flex items-center justify-center flex-shrink-0">
                 <User className="w-5 h-5 text-white" />
               </div>
-              <div className="ml-3">
-                <div className="text-sm font-medium font-['Inter']">{user.name || user.email}</div>
+              <div className="ml-3 min-w-0 flex-1">
+                <div className="text-sm font-medium font-['Inter'] truncate">
+                  {user.name || user.email}
+                </div>
                 <div className="text-xs text-gray-400 font-['Inter']">Pro Member</div>
               </div>
             </div>

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { LayoutDashboard, LogOut } from 'lucide-react'
 
 export default function Navbar() {
   const router = useRouter()
@@ -25,18 +26,31 @@ export default function Navbar() {
 
   useEffect(() => {
     // Check if user is logged in
-    const userData = localStorage.getItem('user')
-    if (userData) {
-      setUser(JSON.parse(userData))
+    const checkUserAuth = () => {
+      const userData = localStorage.getItem('user')
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData))
+        } catch (error) {
+          console.error('Error parsing user data in navbar:', error)
+          localStorage.removeItem('user')
+          setUser(null)
+        }
+      } else {
+        setUser(null)
+      }
     }
+
+    // Initial check
+    checkUserAuth()
+
+    // Set up periodic check to ensure sync
+    const interval = setInterval(checkUserAuth, 1000)
+
+    return () => clearInterval(interval)
   }, [])
 
-  // If user is logged in, redirect to dashboard
-  useEffect(() => {
-    if (user && window.location.pathname === '/') {
-      router.push('/dashboard')
-    }
-  }, [user, router])
+  // Remove auto-redirect logic - let users stay on any page they want
 
   const handleLogout = () => {
     localStorage.removeItem('user')
@@ -95,21 +109,23 @@ export default function Navbar() {
               // Logged in user menu
               <>
                 <Link href="/dashboard">
-                  <motion.a
+                  <motion.div
                     whileHover={{ scale: 1.05, boxShadow: '0 0 20px #9C6BFF40' }}
                     whileTap={{ scale: 0.95 }}
-                    className="bg-[#9C6BFF] text-white px-6 py-2 rounded-lg font-['Inter'] font-medium inline-block"
+                    className="bg-[#9C6BFF] text-white px-4 py-2 rounded-lg font-['Inter'] font-medium inline-flex items-center space-x-2 cursor-pointer"
                   >
-                    Dashboard
-                  </motion.a>
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </motion.div>
                 </Link>
                 <motion.button
                   onClick={handleLogout}
-                  whileHover={{ scale: 1.05, boxShadow: '0 0 20px #9C6BFF40' }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-transparent text-[#9C6BFF] border border-[#9C6BFF] hover:bg-[#9C6BFF] hover:text-white px-6 py-2 rounded-lg font-['Inter'] font-medium"
+                  className="bg-transparent text-[#9C6BFF] border border-[#9C6BFF] hover:bg-[#9C6BFF] hover:text-white px-3 py-2 rounded-lg font-['Inter'] font-medium inline-flex items-center"
+                  title="Logout"
                 >
-                  Logout
+                  <LogOut className="w-4 h-4" />
                 </motion.button>
               </>
             ) : (

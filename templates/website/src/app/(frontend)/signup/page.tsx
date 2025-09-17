@@ -118,6 +118,7 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSignupSuccess, setIsSignupSuccess] = useState(false)
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 })
   const [isTypingPassword, setIsTypingPassword] = useState(false)
 
@@ -204,8 +205,14 @@ export default function SignupPage() {
         // Store user data
         localStorage.setItem('user', JSON.stringify(data.user))
 
-        // Redirect to dashboard
-        router.push('/dashboard')
+        // Show success message briefly then redirect to homepage
+        setIsSignupSuccess(true)
+        setErrors({ submit: '' })
+
+        // Redirect to homepage after a short delay
+        setTimeout(() => {
+          router.push('/')
+        }, 1500)
       } else {
         setErrors({ submit: data.error || 'Signup failed. Please try again.' })
       }
@@ -504,6 +511,16 @@ export default function SignupPage() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 {errors.submit}
+              </motion.p>
+            )}
+
+            {isSignupSuccess && (
+              <motion.p
+                className="text-sm text-green-400 text-center font-['Inter']"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                ✅ Account created successfully! You can now access the dashboard from the header.
               </motion.p>
             )}
           </motion.form>
