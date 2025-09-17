@@ -7,21 +7,21 @@ import { Github, Twitter, Linkedin, Mail, Phone, MapPin, ArrowUpRight } from 'lu
 
 const footerLinks = {
   company: [
-    { name: 'About Us', href: '#about' },
-    { name: 'Our Story', href: '#story' },
-    { name: 'Careers', href: '#careers' },
+    { name: 'About Us', href: '/about-us' },
+    { name: 'Our Story', href: '/our-story' },
+    { name: 'Careers', href: '/careers' },
     { name: 'Blog', href: '#blog' },
   ],
   services: [
-    { name: 'Web Development', href: '#web-dev' },
-    { name: 'Mobile Apps', href: '#mobile' },
-    { name: 'UI/UX Design', href: '#design' },
-    { name: 'Consulting', href: '#consulting' },
+    { name: 'Web Development', href: '/web-development' },
+    { name: 'Mobile Apps', href: '/mobile-apps' },
+    { name: 'UI/UX Design', href: '/ui-ux-design' },
+    { name: 'Consulting', href: '/consulting' },
   ],
   resources: [
-    { name: 'Case Studies', href: '#cases' },
-    { name: 'Documentation', href: '#docs' },
-    { name: 'Support', href: '#support' },
+    { name: 'Case Studies', href: '/case-studies' },
+    { name: 'Documentation', href: '/documentation' },
+    { name: 'Support', href: '/support' },
     { name: 'Contact', href: '#contact' },
   ],
 }
